@@ -145,3 +145,46 @@ async def student_submit_homework(submission_id: str, background_tasks: Backgrou
 * **Cập nhật tiến độ:** 
   * Giao diện Học sinh sẽ hiển thị trạng thái *"Đã nộp - Chờ giáo viên duyệt"*.
   * Giao diện Giáo viên sẽ hiển thị danh sách bài nộp của lớp, kèm theo cờ thông báo những bài đã chấm xong bởi AI và sẵn sàng để duyệt (`graded`).
+
+---
+
+## 5. Quy trình tải và hiển thị ảnh bài tập từ Cloudflare R2 (Fetch Image Flow)
+
+Vì lý do bảo mật dữ liệu học sinh, Cloudflare R2 bucket được cấu hình **Private** (không công khai ra ngoài Internet). Quy trình truy cập và lấy ảnh diễn ra ở hai ngữ cảnh khác nhau:
+
+### Ngữ cảnh A: Backend xử lý OCR & AI Chấm bài (Server-to-Storage)
+Khi `BackgroundTasks` hoạt động dưới backend, nó sẽ đọc trực tiếp dữ liệu nhị phân (binary bytes) của ảnh từ R2 bằng thư viện AWS SDK S3 để gửi cho OCR/AI:
+1. Backend khởi tạo S3 Client kết nối bằng API Key (`Access Key` / `Secret Key`).
+2. Gọi hàm `get_object` để tải ảnh bài tập về RAM:
+   ```python
+   # Logic xử lý của Backend
+   response = s3_client.get_object(Bucket="grading-copilot-submissions", Key="path/to/student_image.jpg")
+   image_bytes = response['Body'].read()  # Ảnh được lưu dưới dạng bytes để xử lý OCR
+   ```
+
+### Ngữ cảnh B: Giáo viên & Học sinh xem ảnh trên Frontend (Client-to-Storage)
+Để giáo viên có thể nhìn thấy ảnh bài làm trên màn hình Next.js side-by-side mà không gây tốn băng thông và RAM của FastAPI backend (Render Free Tier):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Giáo viên / Học sinh
+    participant FE as Frontend (Next.js)
+    participant BE as Backend (FastAPI)
+    participant R2 as Cloudflare R2
+
+    User->>FE: Mở trang xem chi tiết bài nộp
+    FE->>BE: GET /api/v1/submissions/{id}
+    Note over BE: Kiểm tra quyền truy cập:<br/>Học sinh chỉ xem bài của mình,<br/>Giáo viên chỉ xem bài của lớp mình dạy.
+    BE->>BE: Sinh ra Presigned URL tải ảnh tạm thời (Hạn dùng 10 phút)
+    BE-->>FE: Trả về JSON chứa các thông tin bài nộp + Presigned URL
+    Note over FE: URL trả về dạng:<br/>https://my-r2-endpoint.com/temp/uuid.jpg?X-Amz-Signature=...
+    FE->>R2: Trình duyệt tự động GET ảnh từ R2 bằng Presigned URL
+    R2-->>FE: Trả về file ảnh dạng nhị phân hiển thị lên thẻ <img />
+    FE->>User: Hiển thị bài làm học sinh trên giao diện
+```
+
+Nhờ quy trình này:
+* **Bảo mật:** Không ai có thể xem lén bài thi nếu không có chữ ký số tạm thời từ Backend cấp phát.
+* **Tối ưu hiệu năng:** Ảnh lớn đi thẳng từ Cloudflare R2 về trình duyệt của người dùng, không đi qua máy chủ Render trung gian.
+

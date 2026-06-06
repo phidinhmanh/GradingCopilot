@@ -464,19 +464,26 @@
         POST_class["POST /classrooms"]
         GET_classes["GET /classrooms"]
         POST_join["POST /classrooms/join"]
+        GET_members["GET /classrooms/{id}/students"]
+        DEL_member["DELETE /classrooms/{id}/students/{user_id}"]
+    end
+    subgraph Rubric [Quản lý Rubrics]
+        POST_rubric["POST /rubrics"]
+        GET_rubrics["GET /rubrics"]
+        GET_rubric_detail["GET /rubrics/{id}"]
     end
     subgraph Assignment [Bài tập]
         POST_assign["POST /assignments"]
         GET_assigns["GET /assignments/class/{classroom_id}"]
+        GET_assign_subs["GET /assignments/{id}/submissions"]
     end
-    subgraph Submission [Bài nộp &amp; AI]
+    subgraph Submission [Bài nộp &amp; Duyệt điểm]
         POST_presign["POST /submissions/presign"]
+        POST_ocr["POST /submissions/ocr"]
         POST_submit["POST /submissions"]
         GET_sub_detail["GET /submissions/{id}"]
-    end
-    subgraph Grading [Duyệt điểm]
-        GET_grade["GET /grades/submission/{id}"]
-        PUT_approve["PUT /grades/submission/{id}/approve"]
+        DEL_submission["DELETE /submissions/{id}"]
+        PUT_approve["PUT /submissions/{id}/approve"]
     end
 </code></pre>
 <hr />
@@ -581,12 +588,104 @@
     "classroom_name": "Lớp 8A1 - Môn Văn"
   }</code></li>
 </ul>
+<h4 id="4-lay-danh-sach-hoc-sinh-trong-lop">4. Lấy danh sách học sinh trong lớp (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /classrooms/{classroom_id}/students</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Trả về danh sách học sinh đã tham gia lớp học.</li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  [
+    {
+      "user_id": "e838efca-8178-433a-bd1e-53c072d6279f",
+      "email": "student1@school.edu.vn",
+      "full_name": "Nguyễn Văn A",
+      "alias_name": "A Văn Nguyễn",
+      "joined_at": "2026-06-05T08:20:00Z"
+    }
+  ]</code></li>
+</ul>
+<h4 id="5-xoa-hoc-sinh-khoi-lop">5. Xóa học sinh khỏi lớp (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>DELETE /classrooms/{classroom_id}/students/{user_id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Xóa một học sinh ra khỏi lớp học. Khi học sinh bị xóa, các bài nộp của học sinh này trong các bài tập thuộc lớp này cũng có thể bị ảnh hưởng (tùy thuộc vào chính sách xóa của cơ sở dữ liệu - Cascade delete).</li>
+<li><strong>Phản hồi thành công (204 No Content):</strong> Không trả về dữ liệu.</li>
+</ul>
 <hr />
-<h3 id="mo-un-3-bai-tap-ve-nha-assignments">MÔ-ĐUN 3: BÀI TẬP VỀ NHÀ (ASSIGNMENTS)</h3>
+<h3 id="mo-un-3-quan-ly-rubrics">MÔ-ĐUN 3: QUẢN LÝ TIÊU CHÍ CHẤM ĐIỂM (RUBRICS)</h3>
+<h4 id="1-tao-rubric-moi">1. Tạo Rubric mới (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /rubrics</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Tạo một bộ Rubric tiêu chí chấm điểm mới để có thể sử dụng lại cho nhiều bài tập khác nhau.</li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "title": "Rubric NLXH 200 chữ",
+    "subject": "Ngữ văn",
+    "criteria": [
+      {
+        "id": "c1",
+        "name": "Bố cục &amp; Lập luận",
+        "max_points": 5.0,
+        "description": "Mở đoạn rõ ràng, dẫn chứng thuyết phục."
+      },
+      {
+        "id": "c2",
+        "name": "Ngữ pháp &amp; Chính tả",
+        "max_points": 5.0,
+        "description": "Không sai quá 2 lỗi chính tả/ngữ pháp."
+      }
+    ]
+  }</code></li>
+<li><strong>Phản hồi thành công (201 Created):</strong>
+  <code>json
+  {
+    "id": "g90df77a-abcd-1234-5678-999988887777",
+    "title": "Rubric NLXH 200 chữ",
+    "subject": "Ngữ văn",
+    "criteria": [ ... ],
+    "created_by": "teacher-uuid",
+    "created_at": "2026-06-05T08:15:00Z"
+  }</code></li>
+</ul>
+<h4 id="2-lay-danh-sach-rubric">2. Lấy danh sách Rubric của Giáo viên</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /rubrics</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  [
+    {
+      "id": "g90df77a-abcd-1234-5678-999988887777",
+      "title": "Rubric NLXH 200 chữ",
+      "subject": "Ngữ văn",
+      "created_at": "2026-06-05T08:15:00Z"
+    }
+  ]</code></li>
+</ul>
+<h4 id="3-lay-chi-tiet-rubric">3. Lấy chi tiết Rubric</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /rubrics/{id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "id": "g90df77a-abcd-1234-5678-999988887777",
+    "title": "Rubric NLXH 200 chữ",
+    "subject": "Ngữ văn",
+    "criteria": [ ... ],
+    "created_at": "2026-06-05T08:15:00Z"
+  }</code></li>
+</ul>
+<hr />
+<h3 id="mo-un-4-bai-tap-ve-nha-assignments">MÔ-ĐUN 4: BÀI TẬP VỀ NHÀ (ASSIGNMENTS)</h3>
 <h4 id="1-tao-bai-tap-ve-nha-moi-chi-danh-cho-giao-vien">1. Tạo bài tập về nhà mới (Chỉ dành cho Giáo viên)</h4>
 <ul>
 <li><strong>Endpoint:</strong> <code>POST /assignments</code></li>
 <li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Tạo bài tập mới. Giáo viên có thể truyền <code>rubric_id</code> của một Rubric đã tạo sẵn HOẶC truyền cấu trúc <code>rubric</code> (inline) để tự động tạo một Rubric mới gắn liền với bài tập này.</li>
 <li><strong>Payload:</strong>
   <code>json
   {
@@ -595,7 +694,8 @@
     "deadline": "2026-06-12T23:59:00Z",
     "classroom_id": "a90df12d-118c-4a30-9b48-1212abfde211",
     "answer_key_url": "https://r2.gradingapp.com/keys/dapan_bai1.txt", // Tùy chọn
-    "rubric": {
+    "rubric_id": "g90df77a-abcd-1234-5678-999988887777", // Tùy chọn: Dùng rubric có sẵn
+    "rubric": { // Tùy chọn: Tạo rubric inline nếu không truyền rubric_id
       "title": "Rubric NLXH 200 chữ",
       "criteria": [
         {
@@ -603,12 +703,6 @@
           "name": "Bố cục &amp; Lập luận",
           "max_points": 5.0,
           "description": "Mở đoạn rõ ràng, dẫn chứng thuyết phục."
-        },
-        {
-          "id": "c2",
-          "name": "Ngữ pháp &amp; Chính tả",
-          "max_points": 5.0,
-          "description": "Không sai quá 2 lỗi chính tả/ngữ pháp."
         }
       ]
     }
@@ -619,6 +713,7 @@
     "id": "c567feab-129d-4001-ba81-1234abcdffee",
     "title": "Bài viết Nghị luận xã hội số 1",
     "classroom_id": "a90df12d-118c-4a30-9b48-1212abfde211",
+    "rubric_id": "g90df77a-abcd-1234-5678-999988887777",
     "created_at": "2026-06-05T08:15:00Z"
   }</code></li>
 </ul>
@@ -639,8 +734,30 @@
     }
   ]</code></li>
 </ul>
+<h4 id="3-lay-danh-sach-bai-nop-cua-bai-tap">3. Lấy danh sách bài nộp của bài tập (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /assignments/{assignment_id}/submissions</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Giáo viên lấy danh sách bài nộp của cả lớp cho một Assignment cụ thể để theo dõi ai đã nộp, ai chưa nộp, điểm đề xuất của AI và điểm chốt cuối cùng.</li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  [
+    {
+      "id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
+      "student_id": "e838efca-8178-433a-bd1e-53c072d6279f",
+      "student_name": "Nguyễn Văn A",
+      "status": "graded", // processing | graded | error
+      "submitted_at": "2026-06-05T08:20:00Z",
+      "grade_summary": {
+        "proposed_score": 7.5,
+        "final_score": 8.0, // NULL nếu giáo viên chưa duyệt
+        "is_approved": true
+      }
+    }
+  ]</code></li>
+</ul>
 <hr />
-<h3 id="mo-un-4-bai-nop-hoc-sinh-submissions">MÔ-ĐUN 4: BÀI NỘP HỌC SINH (SUBMISSIONS)</h3>
+<h3 id="mo-un-5-bai-nop-hoc-sinh-submissions">MÔ-ĐUN 5: BÀI NỘP HỌC SINH &amp; DUYỆT ĐIỂM (SUBMISSIONS &amp; GRADING)</h3>
 <h4 id="1-yeu-cau-sinh-presigned-url-upload-anh-chi-danh-cho-hoc-sinh">1. Yêu cầu sinh Presigned URL upload ảnh (Chỉ dành cho Học sinh)</h4>
 <ul>
 <li><strong>Endpoint:</strong> <code>POST /submissions/presign</code></li>
@@ -658,19 +775,40 @@
     "download_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg"
   }</code></li>
 </ul>
+<h4 id="1-5-trich-xuat-van-ban-ocr-thong-qua-anh">1.5 Trích xuất văn bản OCR từ ảnh (Chỉ dành cho Học sinh)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /submissions/ocr</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Nhận ảnh bài tập vừa upload và thực hiện chạy OCR nhanh (1-3s) để trích xuất văn bản thô. Text này sẽ được trả về trực tiếp để học sinh có thể kiểm tra và tự sửa lỗi/mờ trên UI trước khi chính thức bấm nộp bài chấm AI. Tránh việc chấm nhầm ảnh mờ gây lãng phí tài nguyên LLM.</li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "image_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg"
+  }</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "raw_text": "Hôm nay em xin viết về lòng dũng cảm..."
+  }</code></li>
+</ul>
 <h4 id="2-nop-bai-tap-bao-mat-inh-danh-tu-jwt">2. Nộp bài tập (Bảo mật - Định danh từ JWT)</h4>
 <ul>
 <li><strong>Endpoint:</strong> <code>POST /submissions</code></li>
 <li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
-<li><strong>Mô tả:</strong> Gọi sau khi học sinh đã upload thành công ảnh lên Cloudflare R2 bằng URL ở bước trước. <code>user_id</code> nộp bài được Backend phân giải trực tiếp từ Token JWT của header.</li>
+<li><strong>Mô tả:</strong> Nộp bài làm kèm văn bản đã được kiểm tra/chỉnh sửa bởi học sinh. 
+  <blockquote> [!NOTE]
+  > <strong>Cơ chế nộp lại (Resubmission):</strong> Nếu học sinh gọi endpoint này khi đã nộp bài tập trước đó, API sẽ tự động xử lý ghi đè (overwrite) nếu trạng thái bài nộp cũ chưa được duyệt (<code>is_approved = false</code>). Do FastAPI <code>BackgroundTasks</code> / webhook queue trên Render không hỗ trợ hủy thread chạy ngầm một cách native, hệ thống áp dụng cơ chế <strong>Checkpoint Verification (Hủy thụ động)</strong>: Khi ghi đè, bản ghi DB cũ bị xóa/thay thế bằng ID mới. Task cũ chạy ngầm khi đến checkpoint kiểm tra DB sẽ thấy ID cũ không tồn tại và tự động dừng lại (abort) trước khi gọi LLM. Nếu bài đã được duyệt điểm, hệ thống trả về <code>409 Conflict</code>.
+  </blockquote>
+</li>
 <li><strong>Ràng buộc kiểm tra của API:</strong></li>
 <li>Kiểm tra xem học sinh (<code>user_id</code>) đã join lớp của bài tập (<code>assignment_id</code>) chưa. Nếu chưa, trả về <code>403 Forbidden</code>.</li>
-<li>Kiểm tra xem học sinh đã nộp bài tập này chưa (ràng buộc <code>UNIQUE</code>). Nếu đã nộp rồi, trả về <code>409 Conflict</code>.</li>
+<li>Kiểm tra xem bài tập này đã được giáo viên duyệt điểm chưa. Nếu đã duyệt rồi, trả về <code>409 Conflict</code>.</li>
 <li><strong>Payload:</strong>
   <code>json
   {
     "assignment_id": "c567feab-129d-4001-ba81-1234abcdffee",
-    "image_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg"
+    "image_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg",
+    "confirmed_text": "Văn bản bài làm học sinh đã kiểm tra hoặc chỉnh sửa..."
   }</code></li>
 <li><strong>Phản hồi thành công (202 Accepted):</strong>
   <code>json
@@ -680,11 +818,18 @@
     "message": "Nộp bài thành công. Tiến trình chấm điểm tự động đã bắt đầu."
   }</code></li>
 </ul>
-<h4 id="3-lay-chi-tiet-bai-nop-a-tich-hop-thong-tin-iem">3. Lấy chi tiết bài nộp (Đã tích hợp thông tin điểm)</h4>
+<h4 id="3-huy-thu-hoi-bai-nop">3. Hủy / Thu hồi bài nộp (Chỉ dành cho Học sinh)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>DELETE /submissions/{id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Học sinh có thể chủ động hủy/rút lại bài làm đã nộp nếu bài nộp <strong>chưa được giáo viên duyệt điểm</strong> (<code>is_approved = false</code>). Khi thu hồi, bản ghi tương ứng và kết quả chấm điểm tạm thời trong bảng <code>grades</code> sẽ bị xóa khỏi cơ sở dữ liệu. Task chạy ngầm chấm bài cũ khi đến checkpoint kiểm tra DB sẽ tự động dừng lại (abort) trước khi thực hiện gọi LLM tốn phí.</li>
+<li><strong>Phản hồi thành công (204 No Content):</strong> Không trả về dữ liệu.</li>
+</ul>
+<h4 id="4-lay-chi-tiet-bai-nop">4. Lấy chi tiết bài nộp (Đã tích hợp đầy đủ chi tiết điểm số &amp; nhận xét)</h4>
 <ul>
 <li><strong>Endpoint:</strong> <code>GET /submissions/{id}</code></li>
 <li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
-<li><strong>Mô tả:</strong> Lấy thông tin chi tiết bài nộp. Nếu trạng thái là <code>graded</code>, API trả về kèm theo thông tin điểm số cơ bản. Nếu trạng thái là <code>processing</code> hoặc <code>error</code>, trường <code>grade_summary</code> sẽ trả về <code>null</code> vì chưa tồn tại bản ghi trong bảng <code>grades</code>.</li>
+<li><strong>Mô tả:</strong> Lấy thông tin chi tiết bài nộp bao gồm ảnh gốc và text OCR. Nếu trạng thái là <code>graded</code>, API trả về kèm theo thông tin chi tiết điểm số, tiêu chí và nhận xét (từ AI lẫn Giáo viên) dưới trường <code>grade</code>. Nếu trạng thái là <code>processing</code> hoặc <code>error</code>, trường <code>grade</code> sẽ trả về <code>null</code>.</li>
 <li><strong>Phản hồi thành công (200 OK):</strong>
   <code>json
   {
@@ -695,46 +840,32 @@
     "ocr_text": "Hôm nay em xin viết về lòng dũng cảm...", 
     "status": "graded", // processing | graded | error
     "submitted_at": "2026-06-05T08:20:00Z",
-    "grade_summary": {
-      "proposed_score": 7.5,
+    "grade": {
+      "id": "g90df77a-abcd-1234-5678-999988887777",
+      "proposed_score": 7.5, // Điểm AI đề xuất
       "final_score": 8.0, // NULL nếu giáo viên chưa chốt duyệt điểm
-      "is_approved": true
-    }
-  }</code></li>
-</ul>
-<hr />
-<h3 id="mo-un-5-duyet-iem-grading-review">MÔ-ĐUN 5: DUYỆT ĐIỂM (GRADING REVIEW)</h3>
-<h4 id="1-lay-ket-qua-cham-chi-tiet-ai-cham-tho">1. Lấy kết quả chấm chi tiết (AI chấm thô)</h4>
-<ul>
-<li><strong>Endpoint:</strong> <code>GET /grades/submission/{submission_id}</code></li>
-<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
-<li><strong>Phản hồi thành công (200 OK):</strong>
-  <code>json
-  {
-    "id": "g90df77a-abcd-1234-5678-999988887777",
-    "submission_id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
-    "proposed_score": 7.5, // Điểm AI đề xuất
-    "final_score": null, // Giáo viên chưa chốt
-    "is_approved": false,
-    "ai_feedback": "Bài viết trôi chảy, luận điểm dũng cảm tốt. Có 1 lỗi chính tả ở dòng 3.",
-    "final_feedback": null,
-    "grading_details": {
-      "c1": {
-        "score": 4.0,
-        "max_points": 5.0,
-        "reason": "Mở bài và thân bài tốt nhưng kết luận chưa đọng lại nhiều ý nghĩa."
+      "is_approved": true,
+      "ai_feedback": "Bài viết trôi chảy, luận điểm dũng cảm tốt. Có 1 lỗi chính tả ở dòng 3.",
+      "final_feedback": "Thầy đồng ý với nhận xét của AI. Bài viết rất có cảm xúc, cố gắng khắc phục lỗi chính tả nhé em!",
+      "grading_details": {
+        "c1": {
+          "score": 4.5,
+          "max_points": 5.0,
+          "reason": "Thầy cộng thêm 0.5 điểm khuyến khích vì ý tưởng sáng tạo."
+        },
+        "c2": {
+          "score": 3.5,
+          "max_points": 5.0,
+          "reason": "Giữ nguyên lỗi chính tả."
+        }
       },
-      "c2": {
-        "score": 3.5,
-        "max_points": 5.0,
-        "reason": "Viết nhầm từ 'dũng cảm' thành 'dũng cãm' ở dòng thứ 3."
-      }
+      "graded_at": "2026-06-05T08:30:00Z"
     }
   }</code></li>
 </ul>
-<h4 id="2-phe-duyet-hoac-sua-iem-chi-danh-cho-giao-vien">2. Phê duyệt hoặc sửa điểm (Chỉ dành cho Giáo viên)</h4>
+<h4 id="5-phe-duyet-hoac-sua-iem">5. Phê duyệt hoặc sửa điểm (Chỉ dành cho Giáo viên)</h4>
 <ul>
-<li><strong>Endpoint:</strong> <code>PUT /grades/submission/{submission_id}/approve</code></li>
+<li><strong>Endpoint:</strong> <code>PUT /submissions/{id}/approve</code></li>
 <li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
 <li><strong>Payload:</strong>
   <code>json

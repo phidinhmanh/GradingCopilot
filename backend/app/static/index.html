@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chấm bài văn</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="topbar">
+        <div>
+          <h1>Chấm bài văn</h1>
+          <p>Upload file .txt đề bài và bài làm, tạo rubric rồi chấm nháp.</p>
+        </div>
+        <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API Docs</a>
+      </section>
+
+      <section class="panel">
+        <h2>File đầu vào</h2>
+        <div class="grid">
+          <label>
+            File đề bài (.txt)
+            <input id="assignmentFile" type="file" accept=".txt,text/plain" />
+          </label>
+          <label>
+            File bài làm (.txt)
+            <input id="answerFile" type="file" accept=".txt,text/plain" />
+          </label>
+          <label>
+            Điểm tối đa
+            <input id="maxScore" type="number" min="0.25" step="0.25" value="10" />
+          </label>
+          <label>
+            Khối lớp
+            <input id="gradeLevel" value="Lớp 8" />
+          </label>
+        </div>
+        <div class="actions">
+          <button id="generateRubricBtn">Tạo rubric</button>
+          <button id="gradeBtn" class="primary" disabled>Chấm bài</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Rubric giáo viên duyệt</h2>
+          <button id="addCriterionBtn" class="secondary">Thêm tiêu chí</button>
+        </div>
+        <div id="rubricRows" class="rows empty">Chưa có rubric.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Kết quả chấm nháp</h2>
+        <div id="result" class="result empty">Chưa có kết quả.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Duyệt điểm cuối</h2>
+        <div class="grid">
+          <label>
+            Tên học sinh
+            <input id="studentName" value="Nguyễn Văn A" />
+          </label>
+          <label class="wide">
+            Góp ý cuối cùng
+            <textarea id="finalFeedback" rows="3"></textarea>
+          </label>
+          <label class="wide">
+            Ghi chú giáo viên
+            <textarea id="teacherNote" rows="2"></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="approveBtn" disabled>Duyệt điểm</button>
+        </div>
+        <pre id="approvalResult" class="json-output"></pre>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

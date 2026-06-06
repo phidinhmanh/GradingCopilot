@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP) - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling (Markdown equivalents) */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        /* Lists styling */
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        /* Blockquotes / Alerts styling */
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        /* Custom alert styles matching GitHub markdown */
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        /* Code & Pre */
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        /* Tables styling */
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Mermaid styling wrapper */
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+<li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+<li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="git_workflow.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+<li class="doc-item"><a href="infrastructure.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+<li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+<li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+<li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+<li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="e-xuat-tech-stack-kien-truc-he-thong-ai-grading-copilot-production-mvp">Đề xuất Tech Stack &amp; Kiến trúc Hệ thống: AI Grading Copilot (Production &amp; MVP)</h1>
+<p>Tài liệu này phân tích chi tiết và đề xuất giải pháp công nghệ (Tech Stack), thiết kế kiến trúc hệ thống và quy trình xử lý AI cho dự án <strong>AI Chấm bài (Grading Copilot)</strong> cấp THCS. Đây là một hệ thống thực tế (Production), cần đảm bảo tính <strong>ổn định, bảo mật dữ liệu học sinh, tối ưu chi phí vận hành AI, và trải nghiệm người dùng mượt mà</strong>.</p>
+<hr />
+<h2 id="1-phan-tich-thach-thuc-ky-thuat-cot-loi">1. Phân tích Thách thức Kỹ thuật cốt lõi</h2>
+<ol>
+<li><strong>Nhận diện chữ viết tay Tiếng Việt (Vietnamese Handwriting OCR):</strong><ul>
+<li>Học sinh cấp 2 viết tay trên giấy kẻ ô ly hoặc giấy nháp. Chữ viết có độ nghiêng, độ mờ, nét thanh nét đậm khác nhau.</li>
+<li>Các thư viện OCR mã nguồn mở thông thường (Tesseract, EasyOCR) có tỉ lệ sai số rất cao đối với tiếng Việt viết tay.</li>
+<li><strong>Giải pháp:</strong> Sử dụng kết hợp <strong>Google Cloud Vision API</strong> (cho OCR thô có độ chính xác chữ viết tay cực cao) hoặc các mô hình Vision-LLM thế hệ mới như <strong>Gemini 1.5 Flash / GPT-4o</strong> để trực tiếp xử lý text kèm ngữ cảnh bài làm.</li>
+</ul>
+</li>
+<li><strong>Chi phí API AI (LLM Cost) &amp; Giới hạn Tốc độ (Rate Limits):</strong><ul>
+<li>Chấm một bài thi tự luận Văn/Toán cần gửi đề bài, đáp án, rubric và nội dung bài làm của học sinh cho LLM. Lượng tokens mỗi bài từ 2k - 10k tokens.</li>
+<li>Nếu giáo viên upload cùng lúc 40-50 bài của cả lớp, hệ thống sẽ bị nghẽn (Rate Limit) và chi phí sẽ rất cao nếu dùng các mô hình đắt tiền như Claude 3.5 Sonnet hoặc GPT-4o.</li>
+<li><strong>Giải pháp:</strong> Sử dụng <strong>Gemini 1.5 Flash</strong> cho phần lớn tác vụ OCR + chấm bài thô (chi phí rẻ gấp 10-15 lần GPT-4o, hỗ trợ Context Caching để tiết kiệm chi phí rubric), và chỉ dùng <strong>Claude 3.5 Sonnet</strong> (hoặc GPT-4o) làm "Premium Engine" cho chấm văn nghị luận phức tạp nếu giáo viên yêu cầu độ sâu sắc cao hơn.</li>
+</ul>
+</li>
+<li><strong>Trải nghiệm tương tác thời gian thực (Interactive UX):</strong><ul>
+<li>Giáo viên cần giao diện tương tác trực quan: Một bên là bài làm gốc (ảnh/PDF), một bên là văn bản OCR được highlight lỗi sai kèm nhận xét của AI.</li>
+<li>Giáo viên phải chỉnh sửa trực tiếp được điểm số và lời phê (Human-in-the-loop).</li>
+</ul>
+</li>
+<li><strong>Phòng tránh lỗi mất mát tác vụ ngầm (Task Durability &amp; Failover):</strong><ul>
+<li>Quá trình tiền xử lý ảnh, gọi API OCR, chấm điểm bằng AI tốn thời gian.</li>
+<li>Nếu server API bị tắt đột ngột (OOM, Sleep, Deploy mới), các tác vụ đang xử lý trong RAM sẽ bị kẹt trạng thái vĩnh viễn. Hệ thống bắt buộc phải sử dụng kiến trúc hàng đợi có cơ chế lưu vết trạng thái và tự phục hồi (Self-healing).</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="2-e-xuat-tech-stack-theo-phan-ky-phat-trien">2. Đề xuất Tech Stack theo Phân kỳ Phát triển</h2>
+<p>Để tối ưu chi phí hạ tầng ban đầu nhưng vẫn sẵn sàng nâng cấp lên hệ thống chịu tải lớn, chúng ta chia kiến trúc thành 2 giai đoạn:</p>
+<h3 id="giai-oan-1-mvp-zero-cost-hosting-stack">Giai đoạn 1: MVP (Zero-Cost Hosting Stack)</h3>
+<ul>
+<li><strong>API Backend:</strong> FastAPI (chạy trên Render Free Service).</li>
+<li><strong>Database:</strong> Supabase/Neon PostgreSQL (Free Tier).</li>
+<li><strong>Hàng đợi Tác vụ (Queue):</strong><ul>
+<li><em>Phương án mặc định:</em> FastAPI Native <code>BackgroundTasks</code> kèm trình quét <strong>Startup Reconciliation</strong> (tự khôi phục task kẹt khi server khởi động lại).</li>
+<li><em>Phương án nâng cao:</em> <strong>Upstash QStash</strong> (Serverless Queue) nhận và gọi lại API qua Webhook bảo mật (Verify Signature) để chống mất task khi Render ngủ đông.</li>
+</ul>
+</li>
+<li><strong>Storage:</strong> Cloudflare R2 (Free 10GB, 0$ Egress fee).</li>
+</ul>
+<h3 id="giai-oan-2-production-scale-up-stack">Giai đoạn 2: Production (Scale-up Stack)</h3>
+<ul>
+<li><strong>Hạ tầng:</strong> Deploy Docker Container lên VPS riêng (Hetzner / Viettel IDC) để tránh ngủ đông và có tài nguyên RAM/CPU lớn hơn.</li>
+<li><strong>Hàng đợi Tác vụ (Queue):</strong> <strong>Celery + Redis</strong> chạy trên container riêng biệt để phân phối tải nặng, không ảnh hưởng đến luồng API chính.</li>
+<li><strong>Realtime:</strong> FastAPI WebSockets kết hợp Redis Pub/Sub để đẩy tiến độ chấm điểm theo thời gian thực.</li>
+</ul>
+<pre><code class="language-mermaid">graph TD
+    Client["Next.js Frontend"] <-->|HTTPS / WSS| API["FastAPI Gateway"]
+    API <--> Cache["Redis - Session & Queue"]
+    API <--> DB["PostgreSQL DB"]
+    API -->|Push Jobs| Worker["Celery / Python Worker"]
+    Worker <--> Cache
+    Worker -->|OCR / Vision API| GCV["Google Cloud Vision"]
+    Worker -->|Grading API| Gemini["Gemini 1.5 / OpenAI / Claude"]
+    Worker --> Storage["Cloudflare R2 / AWS S3"]
+    Client -->|Direct Upload| Storage
+</code></pre>
+<hr />
+<h2 id="3-kien-truc-luong-xu-ly-ai-ocr-ai-pipeline">3. Kiến trúc Luồng Xử lý AI &amp; OCR (AI Pipeline)</h2>
+<p>Để tối ưu hóa độ chính xác nhận diện và chi phí API, luồng xử lý bài làm của học sinh sẽ trải qua 4 bước:</p>
+<pre><code class="language-mermaid">sequenceDiagram
+    autonumber
+    actor GV as Giáo viên
+    participant FE as "Frontend (Next.js)"
+    participant BE as "Backend API (FastAPI)"
+    participant W as "Celery / Task Queue"
+    participant OCR as Google Cloud Vision
+    participant LLM as Gemini 1.5 Flash
+
+    GV->>FE: Upload 40 ảnh bài thi + Chọn Rubric
+    FE->>BE: Yêu cầu tạo phiên chấm bài (Batch Job)
+    BE-->>FE: Trả về Job ID (Để FE theo dõi qua Websocket/SSE)
+    BE->>W: Push Job vào Queue (Redis / Serverless Queue)
+    loop Cho mỗi bài thi
+        W->>W: Tiền xử lý ảnh (xoay thẳng, cắt lề bằng OpenCV)
+        W->>OCR: Gửi ảnh yêu cầu OCR chữ viết tay Tiếng Việt
+        OCR-->>W: Trả về text dạng thô và tọa độ (Bounding Boxes)
+        W->>LLM: Gửi [Text OCR + Ảnh gốc + Rubric + Lời nhắc (Prompt)]
+        Note over LLM: Chấm điểm từng tiêu chí,<br/>Phát hiện lỗi sai,<br/>Sinh lời phê bằng tiếng Việt ấm áp.
+        LLM-->>W: Trả về kết quả JSON chứa Điểm chi tiết & Lời phê
+        W->>BE: Lưu kết quả chấm tạm thời vào PostgreSQL
+        W-->>FE: Gửi cập nhật tiến độ: "Đã chấm xong bài 1"
+    end
+    FE->>GV: Hiển thị màn hình duyệt điểm toàn lớp
+</code></pre>
+<h3 id="chien-luoc-toi-uu-hoa-chi-phi-ai-trong-production">Chiến lược tối ưu hóa chi phí AI trong Production:</h3>
+<ol>
+<li><strong>Gemini 1.5 Flash Context Caching:</strong><ul>
+<li>Khi chấm cả lớp (40 học sinh) cùng một đề bài và rubric, phần đề thi và rubric là giống nhau hoàn toàn.</li>
+<li>Gemini 1.5 hỗ trợ <strong>Context Caching</strong>. Hệ thống sẽ cache Rubric này trên máy chủ của Google. Các request chấm bài tiếp theo chỉ cần truyền bài làm của học sinh và trỏ đến cache ID, giúp <strong>giảm tới 75% chi phí token đầu vào</strong>.</li>
+</ul>
+</li>
+<li><strong>Double-Engine Strategy (Lựa chọn động):</strong><ul>
+<li><strong>Môn Toán/Lý/Hóa:</strong> Dùng Gemini 1.5 Flash là đủ tốt để phát hiện lỗi tính toán và so khớp kết quả.</li>
+<li><strong>Môn Văn/Anh:</strong> Đối với các bài viết dài cần độ cảm thụ văn học cao, hệ thống cho phép giáo viên chọn chế độ "Chấm chuyên sâu" sử dụng <strong>Claude 3.5 Sonnet</strong> (sẽ tốn nhiều credit hơn).</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="4-thiet-ke-co-so-du-lieu-so-bo-database-schema-draft">4. Thiết kế Cơ sở Dữ liệu sơ bộ (Database Schema Draft)</h2>
+<p>Dưới đây là các bảng dữ liệu chính để quản trị hệ thống:</p>
+<pre><code class="language-mermaid">erDiagram
+    USERS {
+        uuid id PK
+        string email
+        string password_hash
+        string role &quot;admin | teacher | student&quot;
+        string full_name
+        datetime created_at
+    }
+    CLASSROOMS {
+        uuid id PK
+        string name
+        uuid teacher_id FK
+        datetime created_at
+    }
+    CLASSROOM_STUDENTS {
+        uuid id PK
+        uuid user_id FK
+        uuid classroom_id FK
+        string alias_name
+        datetime joined_at
+    }
+    RUBRICS {
+        uuid id PK
+        string title
+        string subject &quot;Math | Literature | ...&quot;
+        jsonb criteria_structure &quot;Cấu trúc tiêu chí chấm điểm&quot;
+        uuid created_by FK
+    }
+    ASSIGNMENTS {
+        uuid id PK
+        string title
+        uuid classroom_id FK
+        uuid rubric_id FK
+        string answer_key_url &quot;URL file đáp án&quot;
+    }
+    SUBMISSIONS {
+        uuid id PK
+        uuid user_id FK &quot;Lấy từ JWT của HS&quot;
+        uuid assignment_id FK
+        string raw_image_url &quot;Link ảnh bài làm gốc trên Cloudflare R2&quot;
+        string ocr_text &quot;Text sau khi OCR&quot;
+        string status &quot;processing | graded | error&quot;
+    }
+    GRADES {
+        uuid id PK
+        uuid submission_id FK
+        float proposed_score &quot;Điểm AI đề xuất&quot;
+        float final_score &quot;Điểm GV chốt&quot;
+        jsonb grading_details &quot;Chi tiết điểm từng câu dạng JSON&quot;
+        string ai_feedback &quot;Nhận xét AI&quot;
+        string final_feedback &quot;Nhận xét GV chốt&quot;
+        boolean is_approved
+        datetime graded_at
+    }
+
+    USERS ||--o{ CLASSROOMS : &quot;manages&quot;
+    USERS ||--o{ CLASSROOM_STUDENTS : &quot;enrolls_as&quot;
+    CLASSROOMS ||--o{ CLASSROOM_STUDENTS : &quot;has_members&quot;
+    USERS ||--o{ RUBRICS : &quot;creates&quot;
+    CLASSROOMS ||--o{ ASSIGNMENTS : &quot;has&quot;
+    RUBRICS ||--o{ ASSIGNMENTS : &quot;applied_to&quot;
+    USERS ||--o{ SUBMISSIONS : &quot;submits&quot;
+    ASSIGNMENTS ||--o{ SUBMISSIONS : &quot;has_papers&quot;
+    SUBMISSIONS ||--o| GRADES : &quot;results_in&quot;
+</code></pre>
+<h3 id="cac-rang-buoc-chinh-thiet-ke-o-db-application">Các ràng buộc chính thiết kế ở DB &amp; Application:</h3>
+<ul>
+<li><code>CLASSROOM_STUDENTS</code> có <code>UNIQUE(user_id, classroom_id)</code>.</li>
+<li><code>SUBMISSIONS</code> có <code>UNIQUE(user_id, assignment_id)</code> và bắt buộc Backend validate quyền tham gia lớp học trước khi ghi nhận bài nộp.</li>
+<li><code>GRADES</code> được tạo trễ (lazy-created) chỉ khi kết quả chấm hoàn tất. Do đó, <code>proposed_score</code> luôn <code>NOT NULL</code> khi bản ghi tồn tại.</li>
+</ul>
+<hr />
+<h2 id="5-ke-hoach-ha-tang-trien-khai-infrastructure-devops">5. Kế hoạch Hạ tầng &amp; Triển khai (Infrastructure &amp; DevOps)</h2>
+<ul>
+<li><strong>Môi trường Deploy ứng dụng:</strong><ul>
+<li><strong>Frontend (Next.js):</strong> Deploy trực tiếp lên <strong>Vercel</strong> hoặc <strong>Cloudflare Pages</strong> (Bản Free/Pro ban đầu rất rẻ, băng thông lớn, CDN toàn cầu tốt, không bị ngủ).</li>
+<li><strong>Backend (FastAPI, PostgreSQL, Redis, Worker):</strong> Đóng gói bằng Docker.<ul>
+<li><em>MVP:</em> Deploy lên Render Free.</li>
+<li><em>Production:</em> Deploy lên cụm Server VPS riêng (ví dụ: Hetzner hoặc các nhà cung cấp nội địa như Viettel IDC, VNG Cloud để giảm độ trễ về Việt Nam).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><strong>Bảo mật &amp; Quyền riêng tư (GDPR/Student Data Privacy):</strong><ul>
+<li>Học sinh bắt buộc đăng ký tài khoản định danh để bảo mật bài nộp và điểm số.</li>
+<li>Toàn bộ ảnh bài làm phải được lưu trong bucket Cloudflare R2 có cấu hình <strong>Presigned URLs</strong> (chỉ cho phép truy cập có thời hạn, không public công khai).</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h2 id="6-anh-gia-rui-ro-giai-phap-phong-ngua">6. Đánh giá rủi ro &amp; Giải pháp phòng ngừa</h2>
+<ol>
+<li><strong>Rủi ro OCR sai lệch dẫn đến chấm điểm sai:</strong><ul>
+<li><em>Phòng ngừa:</em> UX thiết kế nút bấm "Sửa OCR" trực quan ngay cạnh ảnh gốc. AI sẽ chỉ chấm dựa trên văn bản đã được giáo viên xác nhận hoặc tự động chấm nhưng có cảnh báo độ tin cậy thấp (Confidence Score &lt; 85%) để giáo viên lưu ý kiểm tra kỹ.</li>
+</ul>
+</li>
+<li><strong>Học sinh dùng chữ viết quá cẩu thả/mờ:</strong><ul>
+<li><em>Phòng ngừa:</em> Module tiền xử lý ảnh sử dụng thuật toán làm sắc nét và tăng độ tương phản (Contrast enhancement). Nếu độ tin cậy của OCR quá thấp, hệ thống sẽ gán trạng thái <code>error</code> kèm cảnh báo giáo viên chấm thủ công hoặc chụp lại bài.</li>
+</ul>
+</li>
+<li><strong>Mất kết nối mạng hoặc sập nguồn máy chủ giữa chừng:</strong><ul>
+<li><em>Phòng ngừa:</em> Do hệ thống lưu trạng thái <code>processing</code> ở DB và áp dụng cơ chế Webhook Retry / Startup Recovery Scanner, khi server khởi động lại hoặc khi mạng ổn định, các task kẹt sẽ được phục hồi và xử lý tiếp. Giáo viên hoàn toàn có thể tắt trình duyệt và quay lại sau.</li>
+</ul>
+</li>
+</ol>
+        </article>
+    </main>
+
+    <!-- JS Scripts for Sidebar toggle, Search, and Mermaid -->
+    <script>
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling (Markdown equivalents) */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        /* Lists styling */
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        /* Blockquotes / Alerts styling */
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        /* Custom alert styles matching GitHub markdown */
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        /* Code & Pre */
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        /* Tables styling */
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Mermaid styling wrapper */
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+<li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+<li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="git_workflow.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+<li class="doc-item"><a href="infrastructure.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+<li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+<li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+<li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+<li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="tai-lieu-co-so-ha-tang-trien-khai-infrastructure-deployment-render-free-tier">Tài liệu Cơ sở Hạ tầng &amp; Triển khai (Infrastructure &amp; Deployment) - Render Free Tier</h1>
+<p>Tài liệu này hướng dẫn cách cấu hình và triển khai dự án <strong>AI Grading Copilot</strong> dạng <strong>Monorepo</strong> lên các dịch vụ đám mây miễn phí (Render, Vercel, Neon, Cloudflare R2).</p>
+<hr />
+<h2 id="1-ban-o-phan-bo-dich-vu-mien-phi-zero-cost-hosting-stack">1. Bản đồ Phân bổ Dịch vụ Miễn phí (Zero-Cost Hosting Stack)</h2>
+<p>Để chạy dự án hoàn toàn miễn phí mà vẫn đảm bảo tính ổn định bền vững, hệ thống được cấu hình phân tán như sau:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Thành phần</th>
+<th style="text-align: left;">Dịch vụ đề xuất</th>
+<th style="text-align: left;">Cấu hình &amp; Lợi ích</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Frontend</strong> (Next.js)</td>
+<td style="text-align: left;"><strong>Vercel</strong> (Free Tier)</td>
+<td style="text-align: left;">• Chạy dạng Serverless, tốc độ phản hồi cực nhanh tại VN.<br>• <strong>Không bị ngủ đông</strong> (khác với Render Free Web Service).<br>• Cấu hình deploy từ monorepo folder <code>/frontend</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Backend API</strong> (FastAPI)</td>
+<td style="text-align: left;"><strong>Render</strong> (Free Web Service)</td>
+<td style="text-align: left;">• CPU dùng chung, 512MB RAM.<br>• Có cơ chế ngủ đông (cold-start) sau 15 phút idle (mất 50s để khởi động lại).<br>• Cấu hình deploy từ monorepo folder <code>/backend</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Database</strong> (PostgreSQL)</td>
+<td style="text-align: left;"><strong>Neon.tech</strong> hoặc <strong>Supabase</strong></td>
+<td style="text-align: left;">• Cung cấp PostgreSQL miễn phí vĩnh viễn.<br>• Tự động sao lưu dữ liệu.<br>• Tránh giới hạn 90 ngày của Render Database.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Object Storage</strong> (Ảnh bài làm)</td>
+<td style="text-align: left;"><strong>Cloudflare R2</strong></td>
+<td style="text-align: left;">• Miễn phí 10GB lưu trữ và không tính tiền băng thông (0$ Egress fee).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-huong-dan-cau-hinh-supabase-postgresql-free-tier">2. Hướng dẫn Cấu hình Supabase PostgreSQL (Free Tier)</h2>
+<p>Hệ thống sử dụng Supabase thuần túy như một <strong>Managed PostgreSQL Database</strong> để lưu trữ dữ liệu bền vững (tránh giới hạn hết hạn 90 ngày của database mặc định trên Render).</p>
+<h3 id="cac-buoc-lay-connection-string">Các bước lấy Connection String:</h3>
+<ol>
+<li>Đăng ký tài khoản tại <a href="https://supabase.com">Supabase</a> và tạo một Project mới (chọn Region <strong>Singapore</strong> để giảm độ trễ về Việt Nam).</li>
+<li>Vào <strong>Project Settings</strong> -&gt; chọn tab <strong>Database</strong>.</li>
+<li>Kéo xuống mục <strong>Connection String</strong>, chọn tab <strong>URI</strong> (định dạng URL kết nối).</li>
+<li>Sao chép chuỗi kết nối và thay thế <code>[YOUR-PASSWORD]</code> bằng mật khẩu database của bạn.</li>
+<li><em>Định dạng mẫu:</em> <code>postgresql://postgres:MySecurePassword123@db.abcxyz.supabase.co:6543/postgres?pgbouncer=true</code></li>
+</ol>
+<h3 id="luu-y-quan-trong-khi-chay-production">Lưu ý quan trọng khi chạy Production:</h3>
+<ul>
+<li><strong>Sử dụng cổng 6543 (PgBouncer):</strong> Vì FastAPI chạy async có thể sinh ra lượng kết nối đồng thời vượt giới hạn của Supabase Free Tier (tối đa 60 connections), bạn <strong>bắt buộc</strong> phải sử dụng cổng <strong>6543</strong> (PgBouncer connection pooler) thay vì cổng Postgres mặc định <code>5432</code> và thêm đuôi <code>?pgbouncer=true</code> vào URL kết nối.</li>
+<li><strong>Database Tự ngủ đông (Auto-pause):</strong> Nếu database không nhận truy vấn trong vòng 1 tuần, Supabase sẽ tạm ngừng (pause) dịch vụ để tiết kiệm tài nguyên. Nếu gặp lỗi kết nối API Backend, bạn chỉ cần vào Supabase Dashboard bấm nút <strong>Resume</strong> để phục hồi.</li>
+</ul>
+<hr />
+<h2 id="3-file-cau-hinh-render-blueprint-renderyaml">3. File cấu hình Render Blueprint (<code>render.yaml</code>)</h2>
+<p>Để tự động thiết lập toàn bộ hạ tầng backend chỉ với 1 click từ Git Monorepo, chúng ta sử dụng <strong>Render Blueprint</strong>. Hãy tạo file <code>render.yaml</code> ở thư mục gốc của dự án:</p>
+<pre><code class="language-yaml">services:
+  # 1. Backend API Service
+  - type: web
+    name: grading-copilot-backend
+    env: python
+    plan: free # Sử dụng gói miễn phí
+    rootDir: backend # Trỏ thư mục gốc của backend trong Monorepo
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false # Điền link kết nối PostgreSQL lấy từ Supabase (Bước 2)
+      - key: CLOUDFLARE_R2_BUCKET
+        sync: false
+      - key: CLOUDFLARE_R2_ACCESS_KEY
+        sync: false
+      - key: CLOUDFLARE_R2_SECRET_KEY
+        sync: false
+      - key: OCR_PROVIDER_CREDENTIALS
+        sync: false # Thông tin cấu hình/API key của bên cung cấp OCR
+      - key: AI_MODEL_API_KEY
+        sync: false # API key của bên cung cấp mô hình ngôn ngữ lớn (LLM)
+      - key: JWT_SECRET
+        generateValue: true # Tự động tạo mã JWT ngẫu nhiên bảo mật
+</code></pre>
+<hr />
+<h2 id="4-quy-trinh-deploy-frontend-len-vercel-tu-monorepo">4. Quy trình Deploy Frontend lên Vercel từ Monorepo</h2>
+<p>Vercel là lựa chọn tối ưu nhất cho Next.js Frontend để tránh việc trang web bị tải chậm do cold-start của Render.</p>
+<h3 id="cac-buoc-cau-hinh-tren-vercel-dashboard">Các bước cấu hình trên Vercel Dashboard:</h3>
+<ol>
+<li>Nhập repository Git của dự án.</li>
+<li>Tại màn hình cấu hình dự án, mở phần <strong>Framework Preset</strong> chọn <strong>Next.js</strong>.</li>
+<li><strong>Root Directory:</strong> Điền <code>frontend</code> (để Vercel biết chỉ build code trong thư mục frontend).</li>
+<li><strong>Environment Variables:</strong> Điền các biến môi trường kết nối API:</li>
+<li><code>NEXT_PUBLIC_API_URL</code>: Trỏ đến URL của Render Backend (Ví dụ: <code>https://grading-copilot-backend.onrender.com</code>).</li>
+<li>Nhấn <strong>Deploy</strong>. Vercel sẽ tự động build và cấp phát domain miễn phí dạng <code>*.vercel.app</code>.</li>
+</ol>
+<hr />
+<h2 id="5-cau-hinh-cloudflare-r2-cho-viec-hoc-sinh-nop-anh-di-ong">5. Cấu hình Cloudflare R2 cho việc Học sinh nộp ảnh di động</h2>
+<p>Vì học sinh sẽ sử dụng điện thoại di động để chụp ảnh bài tập và tải trực tiếp lên Cloudflare R2, cấu hình CORS cần cho phép các yêu cầu kết nối từ các thiết bị di động truy cập domain frontend.</p>
+<h3 id="cac-buoc-thiet-lap-tren-cloudflare-r2">Các bước thiết lập trên Cloudflare R2:</h3>
+<ol>
+<li>Tạo một bucket tên là <code>grading-copilot-submissions</code>.</li>
+<li>Truy cập vào mục <strong>Settings</strong> của Bucket -&gt; <strong>CORS Policy</strong> -&gt; Thêm cấu hình CORS:
+   <code>json
+   [
+     {
+       "AllowedOrigins": ["https://*.vercel.app", "http://localhost:3000"],
+       "AllowedMethods": ["GET", "PUT", "POST"],
+       "AllowedHeaders": ["*"],
+       "ExposeHeaders": []
+     }
+   ]</code></li>
+<li>Tạo API Token của Cloudflare R2 với quyền <strong>Edit</strong> để lấy <code>Access Key ID</code> và <code>Secret Access Key</code> điền vào biến môi trường của Render Backend.</li>
+</ol>
+<hr />
+<h2 id="6-giai-phap-khac-phuc-nhuoc-iem-ngu-ong-cua-render-free-tier">6. Giải pháp khắc phục nhược điểm "Ngủ đông" của Render Free Tier</h2>
+<p>Render Free Web Service sẽ tự động tắt (sleep) nếu không có truy cập trong 15 phút. Khi học sinh mở điện thoại để nộp bài tập, sẽ mất khoảng 50 giây để API khởi động lại (Cold Start), gây cảm giác bị đơ.</p>
+<h3 id="cach-giai-quyet-workarounds">Cách giải quyết (Workarounds):</h3>
+<ol>
+<li><strong>Frontend Handling (Loading UI):</strong></li>
+<li>Trên giao diện nộp bài của học sinh (<code>frontend/src/app/student/upload</code>), khi bấm nút "Nộp bài", nếu phát hiện API Backend chưa sẵn sàng, hiển thị một spinner Loading trực quan kèm lời nhắn: <em>"Hệ thống đang kết nối máy chủ nhận diện bài làm (mất khoảng 30-40 giây), xin vui lòng không đóng trình duyệt..."</em></li>
+<li><strong>Ping Service tự động (Tùy chọn):</strong></li>
+<li>Có thể sử dụng các dịch vụ cronjob miễn phí bên ngoài (như <strong>UptimeRobot</strong> hoặc <strong>Cron-Job.org</strong>) để gửi một request GET rỗng <code>/health</code> đến API Backend 14 phút một lần trong khung giờ học sinh thường làm bài tập (ví dụ: 19h tối - 23h đêm) để giữ cho Render Backend luôn "thức".</li>
+</ol>
+        </article>
+    </main>
+
+    <!-- JS Scripts for Sidebar toggle, Search, and Mermaid -->
+    <script>
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

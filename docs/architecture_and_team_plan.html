@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling (Markdown equivalents) */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        /* Lists styling */
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        /* Blockquotes / Alerts styling */
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        /* Custom alert styles matching GitHub markdown */
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        /* Code & Pre */
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        /* Tables styling */
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Mermaid styling wrapper */
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+<li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+<li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="git_workflow.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+<li class="doc-item"><a href="infrastructure.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+<li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+<li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+<li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+<li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="ke-hoach-phan-ra-he-thong-nguyen-tac-thiet-ke-toi-thieu-scope-hoc-sinh-tu-nop-bai">Kế hoạch Phân rã Hệ thống &amp; Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</h1>
+<p>Tài liệu này xác định phương án chia tách module để <strong>các thành viên phát triển độc lập không bị chồng chéo</strong>, cách <strong>trừu tượng hóa (abstract) OCR/AI</strong> và các <strong>nguyên tắc thiết kế tối thiểu (Minimum Design Principles)</strong> cho phạm vi học sinh tự đăng nhập và nộp bài tập về nhà.</p>
+<hr />
+<h2 id="1-truu-tuong-hoa-ocr-ai-model-service-abstraction">1. Trừu tượng hóa OCR &amp; AI Model (Service Abstraction)</h2>
+<p>Các kỹ sư xây dựng backend và frontend không cần đợi kết quả của kỹ sư AI. Logic AI/OCR sẽ được trừu tượng hóa qua hai Interface:</p>
+<ol>
+<li><strong><code>OCRService</code> Interface:</strong><ul>
+<li>Method: <code>async def extract_text(file_bytes: bytes) -&gt; OCRResult</code></li>
+<li>Trả về chuỗi text bóc tách từ ảnh bài tập viết tay của học sinh.</li>
+</ul>
+</li>
+<li><strong><code>GradingService</code> Interface:</strong><ul>
+<li>Method: <code>async def grade_submission(student_text: str, rubric: RubricData, answer_key: str) -&gt; GradingResult</code></li>
+<li>So khớp bài làm với đáp án và rubric để sinh điểm đề xuất + nhận xét thô.</li>
+</ul>
+</li>
+</ol>
+<p>Trong thời gian phát triển, Backend sử dụng các <strong>Mock Service</strong> để phản hồi dữ liệu giả lập ngay lập tức, cho phép Frontend test UI nộp bài và xem điểm của học sinh trước khi tích hợp API thực tế từ nhà cung cấp OCR/AI.</p>
+<hr />
+<h2 id="2-phan-chia-cong-viec-thanh-vien-khong-chong-cheo">2. Phân chia công việc thành viên (Không chồng chéo)</h2>
+<p>Chúng ta chia dự án thành <strong>4 phân khu độc lập</strong> kết nối với nhau bằng các <strong>Hợp đồng kỹ thuật (Contracts)</strong>.</p>
+<pre><code class="language-mermaid">graph LR
+    subgraph Frontend ["1. Giao diện - Dev A"]
+        UI_Student["Student UI"]
+        UI_Teacher["Teacher UI"]
+    end
+    subgraph API_Specs ["Hợp đồng API - OpenAPI"]
+        Spec["API JSON / Types"]
+    end
+    subgraph Core_Backend ["2. Nghiệp vụ & DB - Dev B"]
+        DB[(PostgreSQL)]
+        Business["CRUD & Login"]
+    end
+    subgraph Background_Workers ["3. Upload & Background - Dev C"]
+        R2["R2 Upload & Async Tasks"]
+    end
+    subgraph AI_Engine ["4. AI & OCR - Dev D"]
+        AI["AI & OCR Providers"]
+    end
+
+    Frontend <--> Spec
+    Spec <--> Core_Backend
+    Core_Backend <--> R2
+    R2 <--> AI
+</code></pre>
+<h3 id="ke-hoach-phan-vai-phan-ra-module">Kế hoạch phân vai &amp; Phân rã Module:</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Thành viên</th>
+<th style="text-align: left;">Nhiệm vụ chính</th>
+<th style="text-align: left;">Điểm chạm cần tránh chồng chéo</th>
+<th style="text-align: left;">Giải pháp giải quyết</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Dev A (Frontend)</strong></td>
+<td style="text-align: left;">• Làm màn hình học sinh: đăng ký/đăng nhập, tham gia lớp bằng mã, nộp ảnh bài tập, xem kết quả.<br>• Làm màn hình giáo viên: tạo bài tập kèm rubric, xem danh sách nộp bài, duyệt điểm.</td>
+<td style="text-align: left;">Cần dữ liệu từ API để hiển thị giao diện.</td>
+<td style="text-align: left;">Sử dụng <strong>API Mock</strong> dựa trên file Spec đã thống nhất từ trước.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dev B (Core Backend)</strong></td>
+<td style="text-align: left;">• Thiết kế DB Schema PostgreSQL (Users, Classrooms, Classroom_Students, Assignments, Submissions, Grades).<br>• Viết API đăng ký/đăng nhập phân quyền, CRUD cho học sinh tham gia lớp học, nộp bài, giáo viên quản lý bài tập và duyệt điểm.</td>
+<td style="text-align: left;">Cần lưu kết quả chấm bài từ tác vụ chạy ngầm.</td>
+<td style="text-align: left;">Định nghĩa rõ cấu trúc bảng <code>SUBMISSIONS</code> và <code>GRADES</code>. Chỉ cần cung cấp hàm API nội bộ để cập nhật trạng thái và điểm số chấm bài.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dev C (Infrastructure)</strong></td>
+<td style="text-align: left;">• Cấu hình upload trực tiếp từ client lên Cloudflare R2 qua Presigned URL.<br>• Thiết lập FastAPI <code>BackgroundTasks</code> kết hợp cơ chế quét tự phục hồi (Startup Recovery) hoặc tích hợp Upstash QStash webhook để kích hoạt luồng chấm AI ngầm bền vững.<br>• Viết API Polling/SSE để thông báo trạng thái chấm bài cho Frontend.</td>
+<td style="text-align: left;">Cần gọi logic AI và OCR để xử lý bài thi.</td>
+<td style="text-align: left;">Dev C chỉ gọi Interface <code>OCRService</code> và <code>GradingService</code>. Dev C <strong>không quan tâm</strong> bên trong AI dùng mô hình gì, chỉ nhận dữ liệu trả về và cập nhật DB.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Dev D (AI / Data Engineer)</strong></td>
+<td style="text-align: left;">• Tối ưu prompt cho AI Model Provider chấm bài theo tiêu chí Rubric.<br>• Kết nối API của nhà cung cấp dịch vụ OCR.<br>• Viết module bóc tách JSON trả về từ LLM để map vào database.</td>
+<td style="text-align: left;">Sợ làm ảnh hưởng trực tiếp đến hệ thống đang chạy.</td>
+<td style="text-align: left;">Dev D làm việc hoàn toàn trong thư mục <code>src/services/providers/</code>. Viết Unit Test độc lập cho module prompt và OCR của mình mà không cần chạy toàn bộ server.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-nguyen-tac-thiet-ke-toi-thieu-minimum-design-principles">3. Nguyên tắc Thiết kế Tối thiểu (Minimum Design Principles)</h2>
+<p>Trước khi viết bất kỳ dòng code nào, đội ngũ phải tuân thủ 5 nguyên tắc "Minimum" dưới đây:</p>
+<ol>
+<li><strong>API-First &amp; Contract-First:</strong> Viết tài liệu API trước khi viết code backend hoặc frontend.</li>
+<li><strong>Interface-Driven Development (IDD):</strong> Mọi dịch vụ bên ngoài (OCR, LLM, Cloud Storage) đều phải khai báo Interface để viết bản Mock chạy thử nghiệm nhanh.</li>
+<li><strong>YAGNI (Chưa cần thì chưa làm):</strong> Tập trung đúng vào luồng học sinh tự đăng nhập, nộp bài tập và giáo viên chấm/duyệt. <em>Chưa làm:</em> hệ thống điểm danh, chat thời gian thực, tự host OCR riêng.</li>
+<li><strong>Database-Driven Domain:</strong> Chốt thiết kế cơ sở dữ liệu và kiểu dữ liệu (đặc biệt là bảng liên kết <code>classroom_students</code> và cột JSONB lưu điểm chi tiết) trước khi viết code API để tránh migration dữ liệu diện rộng về sau.</li>
+<li><strong>Stateless API &amp; Durable Queued Processing:</strong> Các tác vụ tốn thời gian như OCR và chấm điểm AI không được chạy trực tiếp trên luồng API request. Phải đẩy vào hàng xử lý ngầm (FastAPI BackgroundTasks có recovery hoặc Serverless Queue) để trả phản hồi lập tức dưới 500ms, đồng thời đảm bảo không bị mất tác vụ khi máy chủ ngủ đông hoặc bị OOM.</li>
+</ol>
+        </article>
+    </main>
+
+    <!-- JS Scripts for Sidebar toggle, Search, and Mermaid -->
+    <script>
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

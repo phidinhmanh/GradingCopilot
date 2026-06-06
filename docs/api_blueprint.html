@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hợp đồng API (API Blueprint Specification) - v1 - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling (Markdown equivalents) */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        /* Lists styling */
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        /* Blockquotes / Alerts styling */
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        /* Custom alert styles matching GitHub markdown */
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        /* Code & Pre */
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        /* Tables styling */
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Mermaid styling wrapper */
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+<li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+<li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="git_workflow.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+<li class="doc-item"><a href="infrastructure.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+<li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+<li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+<li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+<li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="hop-ong-api-api-blueprint-specification-v1">Hợp đồng API (API Blueprint Specification) - v1</h1>
+<p>Tài liệu này định nghĩa chi tiết các API endpoints của hệ thống <strong>AI Grading Copilot</strong>, đóng vai trò là <strong>Hợp đồng kỹ thuật (Contract)</strong> giữa Frontend (Next.js) và Backend (FastAPI).</p>
+<hr />
+<h2 id="1-quy-chuan-chung-global-conventions">1. Quy chuẩn chung (Global Conventions)</h2>
+<ul>
+<li><strong>Base URL:</strong> <code>/api/v1</code></li>
+<li><strong>Content-Type:</strong> <code>application/json</code></li>
+<li><strong>Authentication:</strong> JWT Bearer Token gửi qua header: <code>Authorization: Bearer &lt;token&gt;</code> (hoặc Cookie bảo mật).</li>
+<li><strong>Định dạng lỗi (Error Response):</strong>
+  <code>json
+  {
+    "detail": "Mô tả chi tiết lỗi xảy ra"
+  }</code></li>
+</ul>
+<hr />
+<h2 id="2-danh-sach-endpoints-chi-tiet">2. Danh sách Endpoints chi tiết</h2>
+<pre><code class="language-mermaid">graph TB
+    subgraph Auth [Xác thực]
+        POST_register["POST /auth/register"]
+        POST_login["POST /auth/login"]
+    end
+    subgraph Classroom [Lớp học]
+        POST_class["POST /classrooms"]
+        GET_classes["GET /classrooms"]
+        POST_join["POST /classrooms/join"]
+    end
+    subgraph Assignment [Bài tập]
+        POST_assign["POST /assignments"]
+        GET_assigns["GET /assignments/class/{classroom_id}"]
+    end
+    subgraph Submission [Bài nộp &amp; AI]
+        POST_presign["POST /submissions/presign"]
+        POST_submit["POST /submissions"]
+        GET_sub_detail["GET /submissions/{id}"]
+    end
+    subgraph Grading [Duyệt điểm]
+        GET_grade["GET /grades/submission/{id}"]
+        PUT_approve["PUT /grades/submission/{id}/approve"]
+    end
+</code></pre>
+<hr />
+<h3 id="mo-un-1-xac-thuc-authentication">MÔ-ĐUN 1: XÁC THỰC (AUTHENTICATION)</h3>
+<h4 id="1-ang-ky-tai-khoan">1. Đăng ký tài khoản</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /auth/register</code></li>
+<li><strong>Mô tả:</strong> Đăng ký tài khoản cho Giáo viên hoặc Học sinh.</li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "email": "student1@school.edu.vn",
+    "password": "SecurePassword123",
+    "full_name": "Nguyễn Văn A",
+    "role": "student" // Hoặc "teacher"
+  }</code></li>
+<li><strong>Phản hồi thành công (201 Created):</strong>
+  <code>json
+  {
+    "id": "e838efca-8178-433a-bd1e-53c072d6279f",
+    "email": "student1@school.edu.vn",
+    "full_name": "Nguyễn Văn A",
+    "role": "student",
+    "created_at": "2026-06-05T08:00:00Z"
+  }</code></li>
+</ul>
+<h4 id="2-ang-nhap">2. Đăng nhập</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /auth/login</code></li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "email": "student1@school.edu.vn",
+    "password": "SecurePassword123"
+  }</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "access_token": "eyJhbGciOi...",
+    "token_type": "bearer",
+    "user": {
+      "id": "e838efca-8178-433a-bd1e-53c072d6279f",
+      "email": "student1@school.edu.vn",
+      "full_name": "Nguyễn Văn A",
+      "role": "student"
+    }
+  }</code></li>
+</ul>
+<hr />
+<h3 id="mo-un-2-quan-ly-lop-hoc-classrooms">MÔ-ĐUN 2: QUẢN LÝ LỚP HỌC (CLASSROOMS)</h3>
+<h4 id="1-tao-lop-hoc-moi-chi-danh-cho-giao-vien">1. Tạo lớp học mới (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /classrooms</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "name": "Lớp 8A1 - Môn Văn"
+  }</code></li>
+<li><strong>Phản hồi thành công (201 Created):</strong>
+  <code>json
+  {
+    "id": "a90df12d-118c-4a30-9b48-1212abfde211",
+    "name": "Lớp 8A1 - Môn Văn",
+    "class_code": "VVAN8A1", // Sinh ngẫu nhiên và duy nhất để HS join
+    "teacher_id": "e838efca-8178-433a-bd1e-53c072d6279f"
+  }</code></li>
+</ul>
+<h4 id="2-lay-danh-sach-lop-hoc">2. Lấy danh sách lớp học</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /classrooms</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Mô tả:</strong> Trả về danh sách lớp học mà người dùng quản lý (nếu là Giáo viên) hoặc đã tham gia (nếu là Học sinh).</li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  [
+    {
+      "id": "a90df12d-118c-4a30-9b48-1212abfde211",
+      "name": "Lớp 8A1 - Môn Văn",
+      "class_code": "VVAN8A1",
+      "teacher_name": "Nguyễn Minh",
+      "created_at": "2026-06-05T08:00:00Z"
+    }
+  ]</code></li>
+</ul>
+<h4 id="3-hoc-sinh-tham-gia-lop-hoc-bang-ma-yeu-cau-ang-nhap">3. Học sinh tham gia lớp học bằng mã (Yêu cầu Đăng nhập)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /classrooms/join</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Học sinh tham gia lớp học bằng cách nhập mã lớp. Hệ thống sẽ tự động liên kết <code>user_id</code> từ JWT token và tạo bản ghi trong <code>classroom_students</code>.</li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "class_code": "VVAN8A1",
+    "alias_name": "Nguyễn Văn A" // Không bắt buộc, dùng để ghi đè tên hiển thị trong lớp
+  }</code></li>
+<li><strong>Phản hồi thành công (201 Created):</strong>
+  <code>json
+  {
+    "id": "b1827cfd-11bb-4554-aa22-544bbddcc77b", // ID của bản ghi tham gia (classroom_students.id)
+    "classroom_id": "a90df12d-118c-4a30-9b48-1212abfde211",
+    "classroom_name": "Lớp 8A1 - Môn Văn"
+  }</code></li>
+</ul>
+<hr />
+<h3 id="mo-un-3-bai-tap-ve-nha-assignments">MÔ-ĐUN 3: BÀI TẬP VỀ NHÀ (ASSIGNMENTS)</h3>
+<h4 id="1-tao-bai-tap-ve-nha-moi-chi-danh-cho-giao-vien">1. Tạo bài tập về nhà mới (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /assignments</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "title": "Bài viết Nghị luận xã hội số 1",
+    "description": "Nêu suy nghĩ của em về lòng dũng cảm (viết đoạn văn 200 chữ).",
+    "deadline": "2026-06-12T23:59:00Z",
+    "classroom_id": "a90df12d-118c-4a30-9b48-1212abfde211",
+    "answer_key_url": "https://r2.gradingapp.com/keys/dapan_bai1.txt", // Tùy chọn
+    "rubric": {
+      "title": "Rubric NLXH 200 chữ",
+      "criteria": [
+        {
+          "id": "c1",
+          "name": "Bố cục &amp; Lập luận",
+          "max_points": 5.0,
+          "description": "Mở đoạn rõ ràng, dẫn chứng thuyết phục."
+        },
+        {
+          "id": "c2",
+          "name": "Ngữ pháp &amp; Chính tả",
+          "max_points": 5.0,
+          "description": "Không sai quá 2 lỗi chính tả/ngữ pháp."
+        }
+      ]
+    }
+  }</code></li>
+<li><strong>Phản hồi thành công (201 Created):</strong>
+  <code>json
+  {
+    "id": "c567feab-129d-4001-ba81-1234abcdffee",
+    "title": "Bài viết Nghị luận xã hội số 1",
+    "classroom_id": "a90df12d-118c-4a30-9b48-1212abfde211",
+    "created_at": "2026-06-05T08:15:00Z"
+  }</code></li>
+</ul>
+<h4 id="2-lay-danh-sach-bai-tap-cua-mot-lop">2. Lấy danh sách bài tập của một lớp</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /assignments/class/{classroom_id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Mô tả:</strong> Lấy danh sách các bài tập được giao trong một lớp học cụ thể.</li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  [
+    {
+      "id": "c567feab-129d-4001-ba81-1234abcdffee",
+      "title": "Bài viết Nghị luận xã hội số 1",
+      "description": "Nêu suy nghĩ của em về lòng dũng cảm (viết đoạn văn 200 chữ).",
+      "deadline": "2026-06-12T23:59:00Z",
+      "created_at": "2026-06-05T08:15:00Z"
+    }
+  ]</code></li>
+</ul>
+<hr />
+<h3 id="mo-un-4-bai-nop-hoc-sinh-submissions">MÔ-ĐUN 4: BÀI NỘP HỌC SINH (SUBMISSIONS)</h3>
+<h4 id="1-yeu-cau-sinh-presigned-url-upload-anh-chi-danh-cho-hoc-sinh">1. Yêu cầu sinh Presigned URL upload ảnh (Chỉ dành cho Học sinh)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /submissions/presign</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "file_name": "homework_page1.jpg",
+    "content_type": "image/jpeg"
+  }</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "upload_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg?X-Amz-Signature=...",
+    "download_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg"
+  }</code></li>
+</ul>
+<h4 id="2-nop-bai-tap-bao-mat-inh-danh-tu-jwt">2. Nộp bài tập (Bảo mật - Định danh từ JWT)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /submissions</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;student_jwt&gt;</code></li>
+<li><strong>Mô tả:</strong> Gọi sau khi học sinh đã upload thành công ảnh lên Cloudflare R2 bằng URL ở bước trước. <code>user_id</code> nộp bài được Backend phân giải trực tiếp từ Token JWT của header.</li>
+<li><strong>Ràng buộc kiểm tra của API:</strong></li>
+<li>Kiểm tra xem học sinh (<code>user_id</code>) đã join lớp của bài tập (<code>assignment_id</code>) chưa. Nếu chưa, trả về <code>403 Forbidden</code>.</li>
+<li>Kiểm tra xem học sinh đã nộp bài tập này chưa (ràng buộc <code>UNIQUE</code>). Nếu đã nộp rồi, trả về <code>409 Conflict</code>.</li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "assignment_id": "c567feab-129d-4001-ba81-1234abcdffee",
+    "image_url": "https://grading-copilot.r2.cloudflare.com/temp/uuid-file.jpg"
+  }</code></li>
+<li><strong>Phản hồi thành công (202 Accepted):</strong>
+  <code>json
+  {
+    "id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
+    "status": "processing", // processing | graded | error
+    "message": "Nộp bài thành công. Tiến trình chấm điểm tự động đã bắt đầu."
+  }</code></li>
+</ul>
+<h4 id="3-lay-chi-tiet-bai-nop-a-tich-hop-thong-tin-iem">3. Lấy chi tiết bài nộp (Đã tích hợp thông tin điểm)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /submissions/{id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Mô tả:</strong> Lấy thông tin chi tiết bài nộp. Nếu trạng thái là <code>graded</code>, API trả về kèm theo thông tin điểm số cơ bản. Nếu trạng thái là <code>processing</code> hoặc <code>error</code>, trường <code>grade_summary</code> sẽ trả về <code>null</code> vì chưa tồn tại bản ghi trong bảng <code>grades</code>.</li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
+    "assignment_id": "c567feab-129d-4001-ba81-1234abcdffee",
+    "student_name": "Nguyễn Văn A",
+    "image_url": "https://...",
+    "ocr_text": "Hôm nay em xin viết về lòng dũng cảm...", 
+    "status": "graded", // processing | graded | error
+    "submitted_at": "2026-06-05T08:20:00Z",
+    "grade_summary": {
+      "proposed_score": 7.5,
+      "final_score": 8.0, // NULL nếu giáo viên chưa chốt duyệt điểm
+      "is_approved": true
+    }
+  }</code></li>
+</ul>
+<hr />
+<h3 id="mo-un-5-duyet-iem-grading-review">MÔ-ĐUN 5: DUYỆT ĐIỂM (GRADING REVIEW)</h3>
+<h4 id="1-lay-ket-qua-cham-chi-tiet-ai-cham-tho">1. Lấy kết quả chấm chi tiết (AI chấm thô)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>GET /grades/submission/{submission_id}</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "id": "g90df77a-abcd-1234-5678-999988887777",
+    "submission_id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
+    "proposed_score": 7.5, // Điểm AI đề xuất
+    "final_score": null, // Giáo viên chưa chốt
+    "is_approved": false,
+    "ai_feedback": "Bài viết trôi chảy, luận điểm dũng cảm tốt. Có 1 lỗi chính tả ở dòng 3.",
+    "final_feedback": null,
+    "grading_details": {
+      "c1": {
+        "score": 4.0,
+        "max_points": 5.0,
+        "reason": "Mở bài và thân bài tốt nhưng kết luận chưa đọng lại nhiều ý nghĩa."
+      },
+      "c2": {
+        "score": 3.5,
+        "max_points": 5.0,
+        "reason": "Viết nhầm từ 'dũng cảm' thành 'dũng cãm' ở dòng thứ 3."
+      }
+    }
+  }</code></li>
+</ul>
+<h4 id="2-phe-duyet-hoac-sua-iem-chi-danh-cho-giao-vien">2. Phê duyệt hoặc sửa điểm (Chỉ dành cho Giáo viên)</h4>
+<ul>
+<li><strong>Endpoint:</strong> <code>PUT /grades/submission/{submission_id}/approve</code></li>
+<li><strong>Headers:</strong> <code>Authorization: Bearer &lt;teacher_jwt&gt;</code></li>
+<li><strong>Payload:</strong>
+  <code>json
+  {
+    "final_score": 8.0, // Giáo viên sửa lại điểm cao hơn hoặc giữ nguyên
+    "final_feedback": "Thầy đồng ý với nhận xét của AI. Bài viết rất có cảm xúc, cố gắng khắc phục lỗi chính tả nhé em!",
+    "grading_details": {
+      "c1": { "score": 4.5, "reason": "Thầy cộng thêm 0.5 điểm khuyến khích vì ý tưởng sáng tạo." },
+      "c2": { "score": 3.5, "reason": "Giữ nguyên lỗi chính tả." }
+    }
+  }</code></li>
+<li><strong>Phản hồi thành công (200 OK):</strong>
+  <code>json
+  {
+    "submission_id": "f892ccdd-1234-abcd-5678-eeeeffffbbbb",
+    "final_score": 8.0,
+    "is_approved": true,
+    "approved_at": "2026-06-05T08:30:00Z"
+  }</code></li>
+</ul>
+        </article>
+    </main>
+
+    <!-- JS Scripts for Sidebar toggle, Search, and Mermaid -->
+    <script>
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

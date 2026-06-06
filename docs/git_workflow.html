@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quy trình Làm việc với Git (Git Workflow & Collaboration) - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling (Markdown equivalents) */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        /* Lists styling */
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        /* Blockquotes / Alerts styling */
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        /* Custom alert styles matching GitHub markdown */
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        /* Code & Pre */
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        /* Tables styling */
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        /* Mermaid styling wrapper */
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+<li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+<li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+<li class="doc-item"><a href="git_workflow.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+<li class="doc-item"><a href="infrastructure.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+<li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+<li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+<li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+<li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="quy-trinh-lam-viec-voi-git-git-workflow-collaboration">Quy trình Làm việc với Git (Git Workflow &amp; Collaboration)</h1>
+<p>Tài liệu này quy chuẩn hóa cách thức làm việc với mã nguồn trong dự án <strong>AI Grading Copilot</strong> để đảm bảo quá trình phát triển song song của 4 lập trình viên không xảy ra xung đột (merge conflicts), code dễ phục hồi và giữ lịch sử git gọn gàng.</p>
+<hr />
+<h2 id="1-chien-luoc-phan-nhanh-branching-strategy">1. Chiến lược Phân nhánh (Branching Strategy)</h2>
+<p>Hệ thống áp dụng <strong>Trunk-Based Development (TBD)</strong> kết hợp với <strong>Short-Lived Feature Branches</strong> để đẩy nhanh tốc độ release và giảm xung đột code.</p>
+<pre><code class="language-mermaid">gitGraph
+    commit id: &quot;Init Project&quot;
+    branch feat/US-001-upload
+    checkout feat/US-001-upload
+    commit id: &quot;feat: add api upload&quot;
+    commit id: &quot;test: mock upload test&quot;
+    checkout main
+    merge feat/US-001-upload tag: &quot;v0.1.0&quot;
+    branch fix/US-001-error
+    checkout fix/US-001-error
+    commit id: &quot;fix: handle empty image&quot;
+    checkout main
+    merge fix/US-001-error tag: &quot;v0.1.1&quot;
+</code></pre>
+<ul>
+<li><strong>Nhánh chính (<code>main</code>):</strong> Nhánh chứa mã nguồn chạy trên môi trường Production. Mọi commit trực tiếp lên <code>main</code> đều bị chặn (Protected Branch).</li>
+<li><strong>Nhánh tính năng (<code>feat/...</code>):</strong> Được tách ra từ <code>main</code> để làm các User Story. Vòng đời tối đa của một nhánh tính năng không quá <strong>3 ngày</strong>.</li>
+<li><strong>Nhánh sửa lỗi (<code>fix/...</code>):</strong> Được tách ra để sửa các bug phát hiện trong quá trình test hoặc hotfix trên production.</li>
+</ul>
+<h3 id="quy-tac-at-ten-nhanh">Quy tắc đặt tên nhánh:</h3>
+<p>Format: <code>[loại_nhánh]/[mã_US_hoặc_mô_tả_ngắn]</code>
+* Ví dụ làm tính năng upload bài: <code>feat/US-001-upload-paper</code>
+* Ví dụ sửa lỗi OCR tiếng Việt bị mất dấu: <code>fix/ocr-vietnamese-accents</code>
+* Ví dụ dọn dẹp thư mục: <code>chore/cleanup-deps</code></p>
+<hr />
+<h2 id="2-quy-chuan-commit-conventional-commits">2. Quy chuẩn Commit (Conventional Commits)</h2>
+<p>Để công cụ tự động sinh Changelog và dễ dàng tìm vết lỗi, toàn bộ thành viên bắt buộc phải viết commit message theo tiêu chuẩn <strong>Conventional Commits 1.0.0</strong>:</p>
+<p>Format: <code>&lt;type&gt;(&lt;scope&gt;): &lt;description&gt;</code></p>
+<h3 id="cac-loai-commit-type">Các loại commit (<code>type</code>):</h3>
+<ul>
+<li><code>feat</code>: Thêm một tính năng mới (ví dụ: <code>feat(api): add base ocr interface</code>).</li>
+<li><code>fix</code>: Sửa một lỗi (ví dụ: <code>fix(frontend): repair zoom button in side-by-side view</code>).</li>
+<li><code>docs</code>: Thay đổi tài liệu hướng dẫn (ví dụ: <code>docs(readme): update setup instructions</code>).</li>
+<li><code>style</code>: Định dạng code (khoảng trắng, dấu chấm phẩy - không đổi logic code).</li>
+<li><code>refactor</code>: Tái cấu trúc mã nguồn nhưng không đổi chức năng hay fix bug.</li>
+<li><code>test</code>: Viết thêm unit test hoặc integration test (ví dụ: <code>test(ocr): add mock test cases</code>).</li>
+<li><code>chore</code>: Các tác vụ linh tinh khác (ví dụ: <code>chore(deps): upgrade fastapi package</code>).</li>
+</ul>
+<p><em>Ví dụ commit hợp lệ:</em></p>
+<blockquote>
+<p><code>feat(ocr): integrate google cloud vision ocr provider</code></p>
+<p><code>fix(auth): fix token expiration time calculation</code></p>
+</blockquote>
+<hr />
+<h2 id="3-quy-trinh-pull-request-pr-code-review">3. Quy trình Pull Request (PR) &amp; Code Review</h2>
+<p>Trước khi tích hợp code từ nhánh tính năng vào <code>main</code>, lập trình viên bắt buộc phải tạo Pull Request (PR) qua Github/Gitlab và tuân thủ các bước:</p>
+<pre><code class="language-text">[Lập trình viên]          [Hệ thống CI]                [Reviewer]
+  Tạo PR mới  ───────&gt; Chạy Lint &amp; Tests ────────&gt; Duyệt &amp; Approve PR
+                           │ (Nếu Fail)                 │ (Nếu Pass)
+                           └───&gt; Chặn Merge             └───&gt; Merge vào main
+</code></pre>
+<h3 id="1-checklist-cua-nguoi-tao-pr-author-checklist">1. Checklist của người tạo PR (Author Checklist):</h3>
+<ul>
+<li>[ ] Code đã chạy thử dưới máy local và không bị lỗi.</li>
+<li>[ ] Đã viết Unit Test bao phủ tối thiểu 70% các dòng code mới thêm.</li>
+<li>[ ] Đã chạy linter (<code>flake8</code> / <code>black</code> cho Python, <code>eslint</code> / <code>prettier</code> cho Next.js) và không còn cảnh báo lỗi định dạng.</li>
+<li>[ ] Không chứa thông tin mật (API Keys, DB password) trong file config (phải dùng file <code>.env</code>).</li>
+</ul>
+<h3 id="2-tieu-chuan-merge">2. Tiêu chuẩn Merge:</h3>
+<ul>
+<li>Cần tối thiểu <strong>1 approval</strong> từ thành viên khác trong nhóm.</li>
+<li>Tất cả các bước kiểm tra tự động của CI (Build, Lint, Test) phải đạt trạng thái <strong>PASS</strong>.</li>
+</ul>
+<hr />
+<h2 id="4-quy-chuan-inh-dang-code-formatting-linting">4. Quy chuẩn Định dạng Code (Formatting &amp; Linting)</h2>
+<p>Cả team sử dụng các công cụ tự động định dạng để tránh tranh cãi về phong cách viết code:</p>
+<ul>
+<li><strong>Backend (Python):</strong></li>
+<li>Định dạng bằng <strong>Black</strong> (<code>line-length = 88</code>).</li>
+<li>Kiểm tra chất lượng bằng <strong>Flake8</strong> (lỗi logic, biến không dùng).</li>
+<li>Định dạng import bằng <strong>isort</strong>.</li>
+<li><strong>Frontend (TypeScript/Next.js):</strong></li>
+<li>Kiểm tra lỗi bằng <strong>ESLint</strong> (sử dụng luật mặc định của Next.js).</li>
+<li>Định dạng bằng <strong>Prettier</strong>.</li>
+</ul>
+<blockquote>
+<p>[!TIP]
+Khuyến khích cài đặt công cụ <strong>Pre-commit hooks</strong> (sử dụng thư viện <code>husky</code> cho frontend hoặc <code>pre-commit</code> cho backend) để tự động định dạng và linting code ngay tại máy local mỗi khi lập trình viên gõ lệnh <code>git commit</code>. Nếu code không sạch, git sẽ từ chối commit.</p>
+</blockquote>
+        </article>
+    </main>
+
+    <!-- JS Scripts for Sidebar toggle, Search, and Mermaid -->
+    <script>
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+        
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

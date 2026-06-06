@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kế hoạch Thử nghiệm Ngược (Backtest Plan) cho AI Grading Copilot - Grading Copilot Docs</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --border-color: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-start: #6366f1;
+            --accent-end: #8b5cf6;
+            --accent-hover: #4f46e5;
+            --code-bg: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            display: flex;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 300px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-logo {
+            background: linear-gradient(135deg, var(--accent-start), var(--accent-end));
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-container {
+            padding: 16px 24px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background-color: #1f2937;
+            border: 1px solid var(--border-color);
+            padding: 10px 16px 10px 40px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-start);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 36px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .doc-list {
+            list-style: none;
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .doc-item {
+            margin-bottom: 8px;
+        }
+
+        .doc-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .doc-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .doc-link.active {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            color: #a5b4fc;
+            font-weight: 500;
+            border-left: 3px solid var(--accent-start);
+            padding-left: 11px;
+        }
+
+        /* Content Layout */
+        .main-content {
+            margin-left: 300px;
+            flex-grow: 1;
+            padding: 60px 80px;
+            max-width: 1200px;
+            min-height: 100vh;
+        }
+
+        .hamburger {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 200;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Document Styling */
+        .doc-body {
+            font-size: 16px;
+            color: #cbd5e1;
+        }
+
+        .doc-body h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .doc-body h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .doc-body h2::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(to bottom, var(--accent-start), var(--accent-end));
+            border-radius: 2px;
+        }
+
+        .doc-body h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            color: #f1f5f9;
+        }
+
+        .doc-body p {
+            margin-bottom: 16px;
+        }
+
+        .doc-body a {
+            color: #818cf8;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(129, 140, 248, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .doc-body a:hover {
+            color: #a5b4fc;
+            border-bottom-style: solid;
+        }
+
+        .doc-body ul, .doc-body ol {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+
+        .doc-body li {
+            margin-bottom: 8px;
+        }
+
+        .doc-body blockquote {
+            background-color: rgba(255, 255, 255, 0.02);
+            border-left: 4px solid var(--accent-start);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 24px;
+            color: #94a3b8;
+        }
+
+        .doc-body blockquote.note {
+            border-left-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.05);
+            color: #93c5fd;
+        }
+
+        .doc-body blockquote.tip {
+            border-left-color: #10b981;
+            background-color: rgba(16, 185, 129, 0.05);
+            color: #6ee7b7;
+        }
+
+        .doc-body blockquote.important {
+            border-left-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.05);
+            color: #c084fc;
+        }
+
+        .doc-body blockquote.warning {
+            border-left-color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.05);
+            color: #fcd34d;
+        }
+
+        .doc-body blockquote.caution {
+            border-left-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.05);
+            color: #fca5a5;
+        }
+
+        .doc-body pre {
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 24px;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+
+        .doc-body code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #f43f5e;
+        }
+
+        .doc-body pre code {
+            background-color: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: #e2e8f0;
+        }
+
+        .doc-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 32px 0;
+            background-color: rgba(255, 255, 255, 0.01);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .doc-body th, .doc-body td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-body th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .doc-body tr:last-child td {
+            border-bottom: none;
+        }
+
+        .doc-body tr:hover td {
+            background-color: rgba(255, 255, 255, 0.015);
+        }
+
+        .mermaid {
+            background: white !important;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .hr-divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 40px 0;
+            border: none;
+        }
+
+        /* Checkbox items */
+        .task-list-item {
+            list-style-type: none;
+            position: relative;
+            padding-left: 28px;
+        }
+        .task-list-item input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            accent-color: var(--accent-start);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 80px 40px;
+            }
+            .hamburger {
+                display: block;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-content {
+                padding: 80px 20px;
+            }
+            .doc-body h1 {
+                font-size: 28px;
+            }
+            .doc-body table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <button class="hamburger" id="hamburger-btn">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <aside class="sidebar" id="sidebar-menu">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div class="sidebar-title">Grading Copilot</div>
+        </div>
+        
+        <div class="search-container">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" class="search-input" id="doc-search" placeholder="Tìm tài liệu...">
+        </div>
+
+        <ul class="doc-list" id="doc-links-ul">
+            <li class="doc-item"><a href="api_blueprint.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Hợp đồng API (API Blueprint Specification) - v1</a></li>
+            <li class="doc-item"><a href="architecture_and_team_plan.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Kế hoạch Phân rã Hệ thống & Nguyên tắc Thiết kế Tối thiểu - Scope Học sinh tự nộp bài</a></li>
+            <li class="doc-item"><a href="architecture_system.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Kiến trúc Hệ thống (System Architecture) - Cấu hình Render Free Tier</a></li>
+            <li class="doc-item"><a href="backtest_plan.html" class="doc-link active"><i class="fa-regular fa-file-lines"></i> Kế hoạch Thử nghiệm Ngược (Backtest Plan) cho AI Grading Copilot</a></li>
+            <li class="doc-item"><a href="database_erd.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở Dữ liệu (Database ERD & Schema Design) - Scope Học sinh tự nộp bài</a></li>
+            <li class="doc-item"><a href="git_workflow.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Quy trình Làm việc với Git (Git Workflow & Collaboration)</a></li>
+            <li class="doc-item"><a href="infrastructure.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Tài liệu Cơ sở Hạ tầng & Triển khai (Infrastructure & Deployment) - Render Free Tier</a></li>
+            <li class="doc-item"><a href="tech_stack_proposal.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> Đề xuất Tech Stack & Kiến trúc Hệ thống: AI Grading Copilot (Production & MVP)</a></li>
+            <li class="doc-item"><a href="../mvp.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> mvp</a></li>
+            <li class="doc-item"><a href="../user_persona.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_persona</a></li>
+            <li class="doc-item"><a href="../user_stories.html" class="doc-link "><i class="fa-regular fa-file-lines"></i> user_stories</a></li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <article class="doc-body">
+            <h1 id="ke-hoach-backtest-grading-copilot">Kế hoạch Thử nghiệm Ngược (Backtest Plan) cho AI Grading Copilot</h1>
+            <p>Tài liệu này vạch ra phương án chi tiết để thực hiện <strong>Backtest (Thử nghiệm ngược)</strong> năng lực và độ chính xác của công cụ chấm nháp bài tự luận văn học (AI Grading Engine) trước khi đưa vào môi trường Production.</p>
+            
+            <hr class="hr-divider">
+
+            <h2>1. Mục tiêu và Nguyên tắc (Objectives & Principles)</h2>
+            <p>Để đảm bảo AI chấm bài không bị thiên vị, không "ảo tưởng" (hallucination), và tiệm cận với năng lực chấm điểm thực tế của giáo viên, chúng ta cần so sánh dữ liệu chấm của AI với kết quả chấm thực tế (Ground Truth) từ con người.</p>
+            <ul>
+                <li><strong>Đo lường Sai số Tuyệt đối (MAE):</strong> Kiểm tra mức độ lệch điểm tuyệt đối của AI so với Giáo viên. Mục tiêu là sai lệch trung bình nhỏ hơn hoặc bằng <strong>0.5 điểm</strong> trên thang điểm 10.</li>
+                <li><strong>Tính nhất quán phân phối (Correlation):</strong> Đảm bảo phân phối điểm số của AI và Giáo viên tương thích tuyến tính (Hệ số tương quan Pearson &gt;= 0.85).</li>
+                <li><strong>Đánh giá Rubric chi tiết:</strong> Chỉ ra tiêu chí chấm nào (ví dụ: nghệ thuật, diễn đạt, nội dung) thường bị AI chấm lệch nhiều nhất để tối ưu hóa prompts.</li>
+                <li><strong>Tối ưu hóa Chi phí & Độ trễ:</strong> Đánh giá mức tiêu thụ Tokens và thời gian phản hồi (latency) của mô hình (so sánh Flash vs Pro) để đưa ra bài toán chi phí hợp lý.</li>
+            </ul>
+
+            <blockquote>
+                [!IMPORTANT]
+                AI chỉ đóng vai trò chấm nháp đề xuất (Draft Grading). Giáo viên luôn là người phê duyệt cuối cùng (Human-in-the-loop). Việc backtest giúp tối thiểu hóa thời gian sửa đổi của giáo viên trên bản nháp của AI.
+            </blockquote>
+
+            <h2>2. Luồng xử lý Backtest (Backtest Pipeline Workflow)</h2>
+            <p>Hệ thống thử nghiệm ngược sẽ hoạt động theo một quy trình tự động hóa khép kín từ khâu nạp dữ liệu đến trực quan hóa kết quả:</p>
+
+            <pre><code class="language-mermaid">
+graph TD
+    A[Tập dữ liệu Ground Truth<br>backtest_dataset.json] --> B[Backtest Execution Script<br>run_backtest.py]
+    B --> C{Gọi Grading API<br>grading_service.py}
+    C -->|Gemini API| D[Nhận kết quả chấm nháp từ AI<br>GradeResponse]
+    D --> E[Lưu trữ chi tiết kết quả chấm<br>backtest_results.json]
+    E --> F[Bộ tính toán chỉ số<br>MAE, Correlation, Accuracy]
+    F --> G[Trực quan hóa đồ thị &<br>Tạo báo cáo backtest_report.html]
+            </code></pre>
+
+            <h2>3. Thiết kế Cấu trúc Dữ liệu Backtest (Dataset Schema)</h2>
+            <p>Dữ liệu thử nghiệm ngược sẽ được định dạng dưới dạng một mảng JSON nằm trong thư mục <code>backend/data/backtest_dataset.json</code>. Mỗi bản ghi đại diện cho một bài làm đã được chấm thực tế.</p>
+            
+            <blockquote>
+                [!IMPORTANT]
+                <strong>Quy định về dữ liệu để đảm bảo tính khách quan:</strong>
+                <ul>
+                    <li><strong>Đa dạng hóa đề bài (Dataset Diversity):</strong> Tập dữ liệu 50 bài test bắt buộc phải trải rộng trên ít nhất <strong>5-10 đề bài/chủ đề khác nhau</strong> (không tập trung vào một đề duy nhất) nhằm đánh giá độ tin cậy của mô hình đối với các bộ Rubric động (Dynamic Rubric).</li>
+                    <li><strong>Chống rò rỉ dữ liệu (Anti-Data Leakage):</strong> Các bài văn mẫu được sử dụng làm ví dụ Few-shot trong Prompt <strong>bắt buộc phải nằm ngoài tập test 50 bài</strong>. Sự giao thoa dữ liệu giữa tập Prompt mẫu và tập Test sẽ dẫn đến sai số ảo (kết quả tốt hơn thực tế).</li>
+                </ul>
+            </blockquote>
+            
+            <pre><code class="language-json">
+[
+  {
+    "id": "BT-001",
+    "assignment_question": "Phân tích tình đồng chí trong bài thơ Đồng chí của Chính Hữu.",
+    "student_answer_text": "Bài thơ Đồng chí của Chính Hữu ra đời năm 1948...",
+    "approved_rubric": [
+      {
+        "criterion": "Hiểu nội dung tác phẩm",
+        "description": "Nêu đúng hoàn cảnh, chủ đề và hình tượng người lính.",
+        "max_score": 3.0
+      },
+      {
+        "criterion": "Phân tích nghệ thuật",
+        "description": "Phân tích được chi tiết ngôn ngữ, giọng điệu đặc sắc.",
+        "max_score": 3.0
+      },
+      {
+        "criterion": "Lập luận và dẫn chứng",
+        "description": "Bố cục rõ ràng, dẫn chứng thơ chính xác.",
+        "max_score": 2.0
+      },
+      {
+        "criterion": "Diễn đạt và chính tả",
+        "description": "Diễn đạt trôi chảy, không sai lỗi chính tả.",
+        "max_score": 2.0
+      }
+    ],
+    "max_score": 10.0,
+    "grade_level": "Lớp 9",
+    "teacher_scores": {
+      "total_score": 8.0,
+      "criteria_breakdown": [
+        {"criterion": "Hiểu nội dung tác phẩm", "score": 2.5},
+        {"criterion": "Phân tích nghệ thuật", "score": 2.0},
+        {"criterion": "Lập luận và dẫn chứng", "score": 2.0},
+        {"criterion": "Diễn đạt và chính tả", "score": 1.5}
+      ]
+    },
+    "teacher_feedback": "Bài làm tốt, phân tích hình ảnh súng bên súng đầu sát bên đầu đạt yêu cầu nhưng cần phân tích sâu hơn câu thơ kết bài."
+  }
+]
+            </code></pre>
+
+            <h2>4. Các Chỉ số Đánh giá & Thang đo (Evaluation Metrics)</h2>
+            <p>Sau khi chạy xong tập mẫu dữ liệu, script backtest sẽ tính toán các chỉ số so sánh điểm số của AI và Giáo viên.</p>
+
+            <blockquote>
+                [!NOTE]
+                <strong>Làm tròn theo Bước điểm (Score Step Constraint):</strong>
+                Tại Việt Nam, giáo viên thường chấm điểm tự luận văn học theo bước điểm lẻ <code>0.25</code> hoặc <code>0.5</code>. Do mô hình Gemini trả về điểm số thực liên tục (ví dụ: 7.3, 7.6), việc so sánh trực tiếp sẽ tạo ra sai số vụn vặt làm nhiễu chỉ số MAE. Script backtest bắt buộc phải có bước <strong>làm tròn điểm số AI về bước điểm gần nhất (ví dụ: làm tròn đến 0.25 hoặc 0.5 điểm)</strong> trước khi so sánh với điểm Ground Truth.
+            </blockquote>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Chỉ số</th>
+                        <th>Công thức / Mô tả</th>
+                        <th>Kỳ vọng (Target)</th>
+                        <th>Ý nghĩa thực tiễn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>MAE (Mean Absolute Error)</strong></td>
+                        <td>Trung bình sai lệch điểm tuyệt đối giữa AI (đã làm tròn về bước điểm) và Giáo viên.</td>
+                        <td>&lt;= 0.5 điểm</td>
+                        <td>Đảm bảo điểm AI chấm sát với điểm giáo viên chấm thực tế.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Exactly Match Rate</strong></td>
+                        <td>Tỷ lệ bài chấm khớp 100% điểm tổng so với Giáo viên.</td>
+                        <td>&gt;= 35%</td>
+                        <td>Đo lường độ chính xác tuyệt đối của AI.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Within 0.5 Limit</strong></td>
+                        <td>Tỷ lệ bài có điểm tổng lệch không quá 0.5 điểm.</td>
+                        <td>&gt;= 75%</td>
+                        <td>Đảm bảo AI đề xuất điểm số có thể dùng được ngay mà không cần sửa đổi nhiều.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Within 1.0 Limit</strong></td>
+                        <td>Tỷ lệ bài có điểm tổng lệch không quá 1.0 điểm.</td>
+                        <td>&gt;= 95%</td>
+                        <td>Định vị giới hạn lệch điểm an toàn tối đa cho phép của hệ thống.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Pearson Correlation ($r$)</strong></td>
+                        <td>Độ tương quan tuyến tính của phân phối điểm.</td>
+                        <td>&gt;= 0.85</td>
+                        <td>Cho biết xu hướng chấm của AI có đồng nhất với Giáo viên (bài giỏi được điểm cao, bài yếu điểm thấp).</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Average Latency</strong></td>
+                        <td>Thời gian hoàn thành 1 lượt chấm bài (giây).</td>
+                        <td>&lt; 5.0s / bài</td>
+                        <td>Độ trễ phản hồi tối ưu trải nghiệm người dùng cuối.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <blockquote>
+                [!TIP]
+                <strong>Chuẩn hóa chuỗi tiêu chí (Criterion Normalization):</strong>
+                Để tránh lỗi dừng chạy hệ thống (validation error) do các lỗi lệch chuỗi ký tự nhỏ (như khoảng trắng thừa, viết hoa viết thường khác biệt giữa Ground Truth và Rubric đầu ra của AI), script backtest phải chuẩn hóa trường <code>criterion</code> (chuyển sang lowercase, cắt khoảng trắng đầu/cuối <code>strip()</code>, và gộp các khoảng trắng giữa câu) trước khi so sánh.
+            </blockquote>
+
+            <h2>5. Kịch bản Thử nghiệm Prompt (Backtest Scenarios)</h2>
+            <p>Quy trình thử nghiệm ngược sẽ so sánh hiệu năng chấm điểm trên 4 kịch bản cấu hình kỹ thuật khác nhau:</p>
+            <ol>
+                <li><strong>Scenario A (Baseline - Zero-shot):</strong> Sử dụng prompt mặc định hiện tại, đưa đề bài, bài làm và rubric yêu cầu mô hình cho điểm trực tiếp kèm nhận xét.</li>
+                <li><strong>Scenario B (Few-shot Prompting):</strong> Đưa thêm 2 cặp bài làm - điểm giáo viên mẫu vào hệ thống prompts làm dẫn chứng tiền đề cho AI tham khảo cách phân bổ điểm. <em>(Lưu ý: Các bài làm mẫu này phải hoàn toàn độc lập và không nằm trong tập test 50 bài)</em>.</li>
+                <li><strong>Scenario C (Chain of Thought - CoT):</strong> Thay đổi prompt chấm điểm yêu cầu mô hình thực hiện các bước lập luận trung gian: "Đầu tiên trích dẫn các câu văn chứng minh bài làm đạt/chưa đạt tiêu chí, sau đó chấm điểm tiêu chí đó, cuối cùng mới tổng hợp điểm số".</li>
+                <li><strong>Scenario D (Model comparison):</strong> So sánh song song cùng 1 prompt CoT trên 2 dòng mô hình: <code>gemini-2.5-flash</code> (giá rẻ, nhanh) và <code>gemini-2.5-pro</code> (thông minh hơn, đắt hơn) để cân đối hiệu năng/giá cả.</li>
+            </ol>
+
+            <h2>6. Kế hoạch Hành động & Các bước Triển khai (Action Items)</h2>
+            <p>Để hoàn thiện tính năng backtest này, nhóm kỹ sư phát triển sẽ triển khai theo các hạng mục công việc sau:</p>
+            <ul>
+                <li class="task-list-item"><input type="checkbox" checked disabled> <strong>Định nghĩa bài toán và thiết lập tài liệu Kế hoạch Thử nghiệm Ngược (Tài liệu này)</strong></li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Chuẩn bị tập dữ liệu đa dạng:</strong> Thu thập 50 bài làm thực tế từ giáo viên văn trải dài ít nhất 5-10 đề bài và rubric khác nhau, ghi vào file <code>backend/data/backtest_dataset.json</code>. Đồng thời chuẩn bị riêng các bài mẫu Few-shot nằm ngoài tập test.</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Xây dựng CLI Engine chạy backtest:</strong> Tạo script Python <code>backend/scripts/run_backtest.py</code> đọc dataset và gọi hàm <code>grade_student_answer</code> từ service.</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Kiểm soát Rate Limit của Gemini:</strong> Tận dụng thư viện <code>asyncio</code> nhưng bắt buộc sử dụng cơ chế giới hạn luồng <code>asyncio.Semaphore(max_value=3)</code> (tối đa 2-5 RPS tùy theo tier của API) để tránh dính lỗi nghẽn hệ thống <code>429 Too Many Requests</code>.</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Tính toán chỉ số và xử lý làm tròn điểm:</strong> Viết module tính toán MAE, correlation và độ lệch chuẩn của các kịch bản chấm điểm. Áp dụng quy tắc làm tròn điểm AI chấm về bước lẻ <code>0.25</code> gần nhất.</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Chuẩn hóa chuỗi so sánh:</strong> Viết hàm chuẩn hóa ký tự cho trường <code>criterion</code> (lowercase, strip, remove double spaces) để khớp dữ liệu Ground Truth và AI chấm chính xác.</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Trực quan hóa kết quả:</strong> Sử dụng <code>matplotlib</code> hoặc xuất file HTML động vẽ biểu đồ phân phối (Scatter Plot so sánh điểm AI vs Teacher, Bar Chart hiển thị lỗi trên từng Rubric).</li>
+                <li class="task-list-item"><input type="checkbox"> <strong>Báo cáo và tinh chỉnh Prompt:</strong> Xuất báo cáo dạng Markdown/HTML tổng hợp kết quả, thực hiện tinh chỉnh prompt trong <code>app/prompts/grading_prompt.py</code> để giảm MAE xuống mức tối thiểu.</li>
+            </ul>
+
+            <h2>7. Biện pháp Khắc phục khi Sai số Lớn (Mitigation Strategies)</h2>
+            <p>Trong trường hợp kết quả chạy Backtest thử nghiệm cho ra MAE &gt; 1.0 điểm (mức lệch lớn ngoài mong đợi):</p>
+            <ul>
+                <li><strong>Lệch chuỗi tiêu chí (Criterion Name Mismatch):</strong> Nếu xảy ra lỗi không ánh xạ được điểm chi tiết của AI và Giáo viên do tên tiêu chí bị AI tự ý viết lại. Khắc phục: Sử dụng hàm chuẩn hóa văn bản nâng cao (fuzzy matching) hoặc siết chặt prompt yêu cầu AI giữ nguyên 100% văn bản tiêu chí.</li>
+                <li><strong>Trường hợp lệch đều (Constant Bias):</strong> AI luôn chấm cao hơn giáo viên 1.0 điểm hoặc ngược lại. Giải pháp: Thêm dòng ràng buộc chấm khắt khe hơn trong prompt hoặc trừ điểm cơ sở.</li>
+                <li><strong>Trường hợp chấm không ổn định (High Variance):</strong> Cùng một bài làm nhưng các lần chấm cho ra điểm số lệch nhau nhiều. Giải pháp: Hạ <code>temperature</code> của Gemini API xuống <code>0.0</code> hoặc <code>0.1</code> để tăng tính nhất quán của kết quả trả về.</li>
+                <li><strong>Trường hợp lệch theo Rubric cụ thể:</strong> Chỉ lệch ở tiêu chí nghệ thuật hoặc diễn đạt. Giải pháp: Định nghĩa rõ hơn trong prompt thế nào là bài viết đạt mức điểm tối đa, trung bình, yếu cho riêng tiêu chí đó.</li>
+            </ul>
+        </article>
+    </main>
+
+    <script>
+        // Mobile Sidebar Hamburger Button Logic
+        const btn = document.getElementById('hamburger-btn');
+        const menu = document.getElementById('sidebar-menu');
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (menu.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (menu.classList.contains('open') && !menu.contains(e.target) && e.target !== btn) {
+                menu.classList.remove('open');
+                btn.querySelector('i').className = 'fa-solid fa-bars';
+            }
+        });
+
+        // Search filtering logic
+        const searchInput = document.getElementById('doc-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.doc-item');
+            
+            items.forEach(item => {
+                const titleText = item.querySelector('.doc-link').textContent.toLowerCase();
+                if (titleText.includes(query)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Clean up blockquote formatting for Github Alerts
+        document.querySelectorAll('blockquote').forEach(bq => {
+            const text = bq.innerText.trim();
+            if (text.startsWith('[!NOTE]')) {
+                bq.classList.add('note');
+                bq.innerHTML = bq.innerHTML.replace(/\[!NOTE\]/g, '<strong><i class="fa-solid fa-circle-info"></i> LƯU Ý</strong><br>');
+            } else if (text.startsWith('[!TIP]')) {
+                bq.classList.add('tip');
+                bq.innerHTML = bq.innerHTML.replace(/\[!TIP\]/g, '<strong><i class="fa-solid fa-lightbulb"></i> MẸO NHỎ</strong><br>');
+            } else if (text.startsWith('[!IMPORTANT]')) {
+                bq.classList.add('important');
+                bq.innerHTML = bq.innerHTML.replace(/\[!IMPORTANT\]/g, '<strong><i class="fa-solid fa-triangle-exclamation"></i> QUAN TRỌNG</strong><br>');
+            } else if (text.startsWith('[!WARNING]')) {
+                bq.classList.add('warning');
+                bq.innerHTML = bq.innerHTML.replace(/\[!WARNING\]/g, '<strong><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO</strong><br>');
+            } else if (text.startsWith('[!CAUTION]')) {
+                bq.classList.add('caution');
+                bq.innerHTML = bq.innerHTML.replace(/\[!CAUTION\]/g, '<strong><i class="fa-solid fa-hand"></i> CHÚ Ý NGUY HIỂM</strong><br>');
+            }
+        });
+
+        // Extract Mermaid diagrams out of code blocks to be rendered natively by Mermaid JS
+        document.querySelectorAll('pre code.language-mermaid').forEach(codeBlock => {
+            const pre = codeBlock.parentNode;
+            const div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = codeBlock.textContent;
+            pre.parentNode.replaceChild(div, pre);
+        });
+    </script>
+
+    <!-- Load Mermaid JS from CDN to render diagrams dynamically -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
+    </script>
+</body>
+</html>

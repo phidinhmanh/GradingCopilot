@@ -472,6 +472,12 @@
                     >
                 </li>
                 <li class="doc-item">
+                    <a href="backtest_plan.html" class="doc-link"
+                        ><i class="fa-regular fa-file-lines"></i> Kế hoạch Thử
+                        nghiệm Ngược (Backtest Plan) cho AI Grading Copilot</a
+                    >
+                </li>
+                <li class="doc-item">
                     <a href="database_erd.html" class="doc-link"
                         ><i class="fa-regular fa-file-lines"></i> Thiết kế Cơ sở
                         Dữ liệu (Database ERD & Schema Design) - Scope Học sinh
@@ -722,11 +728,34 @@
                 <blockquote>
                     <p>
                         [!TIP]
-                        <strong>Giải pháp tối ưu hóa tài nguyên &amp; Hủy Task thụ động (Passive Task Cancellation):</strong><br>
-                        Vì Render Free Tier giới hạn tài nguyên (512MB RAM) và FastAPI <code>BackgroundTasks</code> / webhook-based queue không hỗ trợ cơ chế kill thread hoặc cancel task đang chạy một cách native một cách đơn giản, hệ thống áp dụng <strong>Mô hình Kiểm chứng trạng thái tại Trạm (Checkpoint Verification Pattern)</strong>:<br>
-                        1. Khi một worker bắt đầu thực thi chấm bài (hoặc ngay trước khi gọi API LLM tốn phí), nó sẽ thực hiện truy vấn cơ sở dữ liệu để tìm bản ghi <code>Submission</code> theo ID.<br>
-                        2. Nếu học sinh đã rút bài nộp (qua endpoint <code>DELETE /submissions/{id}</code>) hoặc đã nộp đè bài mới (làm thay đổi ID bài nộp hợp lệ của học sinh đối với bài tập đó), bản ghi cũ sẽ không còn tồn tại hoặc trạng thái đã thay đổi.<br>
-                        3. Lúc này, tác vụ chạy ngầm sẽ ngay lập tức <strong>ngừng thực thi (abort)</strong> trước khi thực hiện cuộc gọi API tốn phí đến nhà cung cấp AI. Giải pháp kiểm tra thụ động này cực kỳ hiệu quả, nhẹ nhàng, không tốn RAM và triệt tiêu 100% chi phí gọi LLM rác khi học sinh spam nộp lại nhiều lần.
+                        <strong
+                            >Giải pháp tối ưu hóa tài nguyên &amp; Hủy Task thụ
+                            động (Passive Task Cancellation):</strong
+                        ><br />
+                        Vì Render Free Tier giới hạn tài nguyên (512MB RAM) và
+                        FastAPI <code>BackgroundTasks</code> / webhook-based
+                        queue không hỗ trợ cơ chế kill thread hoặc cancel task
+                        đang chạy một cách native một cách đơn giản, hệ thống áp
+                        dụng
+                        <strong
+                            >Mô hình Kiểm chứng trạng thái tại Trạm (Checkpoint
+                            Verification Pattern)</strong
+                        >:<br />
+                        1. Khi một worker bắt đầu thực thi chấm bài (hoặc ngay
+                        trước khi gọi API LLM tốn phí), nó sẽ thực hiện truy vấn
+                        cơ sở dữ liệu để tìm bản ghi
+                        <code>Submission</code> theo ID.<br />
+                        2. Nếu học sinh đã rút bài nộp (qua endpoint
+                        <code>DELETE /submissions/{id}</code>) hoặc đã nộp đè
+                        bài mới (làm thay đổi ID bài nộp hợp lệ của học sinh đối
+                        với bài tập đó), bản ghi cũ sẽ không còn tồn tại hoặc
+                        trạng thái đã thay đổi.<br />
+                        3. Lúc này, tác vụ chạy ngầm sẽ ngay lập tức
+                        <strong>ngừng thực thi (abort)</strong> trước khi thực
+                        hiện cuộc gọi API tốn phí đến nhà cung cấp AI. Giải pháp
+                        kiểm tra thụ động này cực kỳ hiệu quả, nhẹ nhàng, không
+                        tốn RAM và triệt tiêu 100% chi phí gọi LLM rác khi học
+                        sinh spam nộp lại nhiều lần.
                     </p>
                 </blockquote>
                 <blockquote>

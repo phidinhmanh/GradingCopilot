@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRD – AI Hỗ Trợ Chấm Bài</title>
+  <style>
+    :root{
+      --bg:#f8fafc;
+      --ink:#0f172a;
+      --muted:#64748b;
+      --primary:#2563eb;
+      --primary-dark:#1e3a8a;
+      --cyan:#06b6d4;
+      --card:#ffffff;
+      --line:#e2e8f0;
+      --soft:#eff6ff;
+      --green:#16a34a;
+      --orange:#f97316;
+      --red:#ef4444;
+      --shadow:0 16px 40px rgba(15,23,42,.08);
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.6;
+    }
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:rgba(255,255,255,.9);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid var(--line);
+    }
+    .nav{
+      max-width:1180px;
+      margin:0 auto;
+      padding:12px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+    .brand{font-weight:850;color:var(--primary-dark);white-space:nowrap}
+    .links{display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end}
+    .links a{color:#334155;text-decoration:none;font-size:14px;font-weight:700}
+    .links a:hover{color:var(--primary)}
+    .hero{
+      background:linear-gradient(135deg,#0f172a 0%,#1d4ed8 60%,#06b6d4 100%);
+      color:white;
+      padding:86px 22px 74px;
+    }
+    .hero-inner{max-width:1180px;margin:0 auto}
+    .kicker{
+      display:inline-block;
+      padding:8px 13px;
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;
+      color:#dbeafe;
+      font-size:14px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      margin-bottom:20px;
+    }
+    h1{font-size:clamp(38px,6vw,72px);line-height:1.04;margin:0 0 22px;font-weight:900;max-width:1050px}
+    .hero p{font-size:clamp(18px,2.3vw,25px);color:#dbeafe;max-width:900px;margin:0 0 28px}
+    .hero-meta{display:flex;gap:12px;flex-wrap:wrap}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);font-weight:750;color:white}
+    main{max-width:1180px;margin:0 auto;padding:34px 22px 90px}
+    section{padding:34px 0;scroll-margin-top:72px}
+    h2{font-size:clamp(28px,4vw,44px);line-height:1.15;margin:0 0 20px;color:#0f172a}
+    h3{font-size:22px;margin:0 0 10px;color:#1e40af}
+    p,li,td{font-size:18px;color:#334155}
+    .lead{font-size:21px;color:#475569;max-width:980px}
+    .grid{display:grid;gap:20px}.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:26px;box-shadow:var(--shadow)}
+    .card.highlight{background:linear-gradient(135deg,#ffffff,#eff6ff)}
+    .num{font-size:44px;line-height:1;font-weight:900;color:var(--primary);margin-bottom:10px}
+    ul{margin:10px 0 0;padding-left:24px}
+    .tag{display:inline-block;padding:7px 12px;border-radius:999px;background:#dbeafe;color:#1e40af;font-weight:800;margin:4px 6px 4px 0;font-size:15px}
+    .table-wrap{overflow-x:auto;border-radius:20px;box-shadow:var(--shadow);border:1px solid var(--line);background:white}
+    table{width:100%;border-collapse:collapse;min-width:760px;background:white}
+    th{background:#1d4ed8;color:white;text-align:left;font-size:16px;padding:14px}
+    td{padding:14px;border-bottom:1px solid var(--line);vertical-align:top}
+    tr:last-child td{border-bottom:none}
+    .flow{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
+    .step{position:relative;background:white;border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow);font-weight:850;color:#0f172a;text-align:center}
+    .step span{display:block;color:var(--primary);font-size:14px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+    .arrow-note{text-align:center;color:#64748b;margin:14px 0;font-weight:800}
+    .callout{border-left:6px solid var(--primary);background:#eff6ff;border-radius:18px;padding:20px 24px;color:#334155}
+    .footer-note{margin-top:40px;padding:24px;border-radius:24px;background:#0f172a;color:white}
+    .footer-note p{color:#cbd5e1;margin:0}
+    @media (max-width:850px){
+      .grid2,.grid3,.flow{grid-template-columns:1fr}
+      .links{display:none}
+      .hero{padding-top:60px}
+      p,li,td{font-size:16px}
+    }
+    @media print{
+      .topbar{display:none}
+      body{background:white}
+      section{break-inside:avoid}
+      .card,.table-wrap{box-shadow:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="nav">
+      <div class="brand">PRD · AI Chấm Bài</div>
+      <div class="links">
+        <a href="#problem">Problem</a>
+        <a href="#goals">Goals</a>
+        <a href="#mvp">MVP</a>
+        <a href="#flow">Workflow</a>
+        <a href="#requirements">Requirements</a>
+        <a href="#metrics">Metrics</a>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="kicker">Product Requirements Document</div>
+      <h1>AI Hỗ Trợ Chấm Bài & Phản Hồi Cho Giáo Viên Phổ Thông</h1>
+      <p>Web app giúp giáo viên upload bài làm, AI đọc chữ viết tay, gợi ý điểm theo rubric, sinh nhận xét và tổng hợp lỗi phổ biến của lớp.</p>
+      <div class="hero-meta">
+        <span class="pill">AI20K-063</span>
+        <span class="pill">K-12 Assisted Grading</span>
+        <span class="pill">Human-in-the-loop</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="overview">
+      <h2>1. Tổng quan sản phẩm</h2>
+      <p class="lead">Sản phẩm hỗ trợ giáo viên chấm bài nhanh hơn bằng AI, đặc biệt với bài viết tay, bài tự luận hoặc bài theo rubric. Hệ thống giúp nhận diện nội dung bài làm, gợi ý điểm, tạo nhận xét và tổng hợp lỗi phổ biến của lớp. Giáo viên vẫn là người duyệt điểm cuối cùng.</p>
+      <div class="grid grid3">
+        <div class="card"><h3>Người dùng chính</h3><p>Giáo viên Tiểu học, THCS, THPT.</p></div>
+        <div class="card"><h3>Loại bài hỗ trợ</h3><p>Ảnh/PDF bài làm, bài viết tay, bài tự luận, bài theo barem/rubric.</p></div>
+        <div class="card"><h3>Kết quả đầu ra</h3><p>Điểm gợi ý, giải thích điểm, nhận xét, dashboard lớp học.</p></div>
+      </div>
+    </section>
+
+    <section id="problem">
+      <h2>2. Problem Statement</h2>
+      <div class="grid grid2">
+        <div class="card highlight"><h3>Vấn đề hiện tại</h3><ul><li>Giáo viên phải chấm nhiều bài cho nhiều lớp.</li><li>Chấm tự luận mất thời gian và dễ thiếu nhất quán.</li><li>Phản hồi cho học sinh thường chậm hoặc sơ sài.</li></ul></div>
+        <div class="card"><h3>Tác động</h3><ul><li>Giáo viên quá tải sau mỗi bài kiểm tra.</li><li>Học sinh không biết rõ mình sai ở đâu.</li><li>Khó tổng hợp lỗi chung để điều chỉnh bài giảng.</li></ul></div>
+      </div>
+    </section>
+
+    <section id="goals">
+      <h2>3. Mục tiêu sản phẩm</h2>
+      <div class="grid grid3">
+        <div class="card"><div class="num">01</div><p>Giảm thời gian chấm bài thủ công.</p></div>
+        <div class="card"><div class="num">02</div><p>Đọc bài làm viết tay từ ảnh/PDF.</p></div>
+        <div class="card"><div class="num">03</div><p>Gợi ý điểm theo đáp án hoặc rubric.</p></div>
+        <div class="card"><div class="num">04</div><p>Tạo nhận xét cá nhân hóa, khích lệ.</p></div>
+        <div class="card"><div class="num">05</div><p>Tổng hợp lỗi phổ biến của lớp.</p></div>
+        <div class="card"><div class="num">06</div><p>Giáo viên duyệt điểm cuối cùng.</p></div>
+      </div>
+    </section>
+
+    <section id="persona">
+      <h2>4. Persona chính</h2>
+      <div class="grid grid2">
+        <div class="card highlight"><h3>Giáo viên phổ thông</h3><p><strong>Tiểu học · THCS · THPT</strong></p><p>Cần chấm bài nhanh, đúng rubric và có phản hồi rõ ràng cho từng học sinh.</p></div>
+        <div class="card"><h3>Pain points</h3><ul><li>Nhiều bài cần chấm trong thời gian ngắn.</li><li>Mất thời gian viết nhận xét.</li><li>Khó tổng hợp lỗi chung cả lớp.</li><li>Bài viết tay khó đọc.</li></ul></div>
+      </div>
+    </section>
+
+    <section id="mvp">
+      <h2>5. MVP Scope</h2>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Nhóm tính năng</th><th>Mô tả</th></tr>
+          <tr><td>Đăng nhập & phân quyền</td><td>Giáo viên đăng nhập, chỉ xem dữ liệu lớp của mình.</td></tr>
+          <tr><td>Quản lý lớp</td><td>Tạo lớp, thêm học sinh, gắn bài làm đúng người.</td></tr>
+          <tr><td>Upload bài làm</td><td>Hỗ trợ JPG, PNG, PDF và xem trước bài làm.</td></tr>
+          <tr><td>OCR / Vision</td><td>AI nhận diện chữ viết tay, cho phép giáo viên sửa.</td></tr>
+          <tr><td>AI grading</td><td>Gợi ý điểm theo rubric và giải thích lý do.</td></tr>
+          <tr><td>Feedback & dashboard</td><td>Tạo nhận xét, lưu kết quả, xem phổ điểm và lỗi phổ biến.</td></tr>
+        </table>
+      </div>
+      <div class="callout" style="margin-top:20px"><strong>Ngoài MVP:</strong> chấm tự động hoàn toàn, fine-tune OCR riêng, tích hợp LMS, app mobile native, tự động gửi nhận xét cho phụ huynh.</div>
+    </section>
+
+    <section id="flow">
+      <h2>6. Luồng sử dụng chính</h2>
+      <div class="flow">
+        <div class="step"><span>Bước 1</span>Đăng nhập</div>
+        <div class="step"><span>Bước 2</span>Chọn lớp / học sinh</div>
+        <div class="step"><span>Bước 3</span>Upload bài</div>
+      </div>
+      <div class="arrow-note">↓</div>
+      <div class="flow">
+        <div class="step"><span>Bước 4</span>AI đọc bài</div>
+        <div class="step"><span>Bước 5</span>Nhập rubric</div>
+        <div class="step"><span>Bước 6</span>AI gợi ý điểm</div>
+      </div>
+      <div class="arrow-note">↓</div>
+      <div class="flow">
+        <div class="step"><span>Bước 7</span>Tạo nhận xét</div>
+        <div class="step"><span>Bước 8</span>Giáo viên duyệt</div>
+        <div class="step"><span>Bước 9</span>Lưu & cập nhật dashboard</div>
+      </div>
+    </section>
+
+    <section id="ai">
+      <h2>7. AI Leverage</h2>
+      <div class="grid grid2">
+        <div class="card"><h3>Vision / OCR</h3><p>Đọc bài làm từ ảnh/PDF, trích xuất nội dung viết tay.</p></div>
+        <div class="card"><h3>LLM</h3><p>Phân tích bài làm, so sánh với rubric, giải thích điểm.</p></div>
+        <div class="card"><h3>Rubric-based Grading</h3><p>Chấm theo tiêu chí rõ ràng, giảm cảm tính.</p></div>
+        <div class="card"><h3>Feedback Generation</h3><p>Tạo nhận xét phù hợp độ tuổi, chỉ ra điểm mạnh và điểm cần cải thiện.</p></div>
+      </div>
+    </section>
+
+    <section id="error">
+      <h2>8. Error & Correction Path</h2>
+      <div class="grid grid2">
+        <div class="card"><h3>Error Path</h3><ul><li>Ảnh mờ hoặc thiếu trang.</li><li>AI đọc sai chữ viết tay.</li><li>AI chưa đủ tự tin khi chấm.</li></ul><p><span class="tag">Cảnh báo upload lại</span><span class="tag">Đánh dấu low-confidence</span></p></div>
+        <div class="card highlight"><h3>Correction Path</h3><ul><li>Giáo viên sửa OCR.</li><li>AI chấm lại theo nội dung đã sửa.</li><li>Giáo viên sửa điểm/nhận xét.</li><li>Chỉ lưu khi giáo viên xác nhận.</li></ul></div>
+      </div>
+    </section>
+
+    <section id="requirements">
+      <h2>9. Functional Requirements</h2>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Mã</th><th>Yêu cầu</th><th>Acceptance Criteria chính</th></tr>
+          <tr><td>FR-001</td><td>Đăng nhập</td><td>Xác thực tài khoản, chuyển vào dashboard hoặc báo lỗi.</td></tr>
+          <tr><td>FR-002</td><td>Quản lý lớp</td><td>Tạo lớp, thêm/sửa/xóa học sinh.</td></tr>
+          <tr><td>FR-003</td><td>Upload bài</td><td>Hỗ trợ JPG/PNG/PDF, xem trước bài làm.</td></tr>
+          <tr><td>FR-004</td><td>Nhận diện nội dung</td><td>AI trích xuất chữ và cho phép chỉnh sửa.</td></tr>
+          <tr><td>FR-005</td><td>AI gợi ý điểm</td><td>Điểm từng phần, tổng điểm, giải thích lý do.</td></tr>
+          <tr><td>FR-006</td><td>Giáo viên duyệt</td><td>GV sửa điểm/nhận xét trước khi lưu chính thức.</td></tr>
+          <tr><td>FR-007</td><td>Dashboard lớp học</td><td>Hiển thị điểm trung bình, phổ điểm và lỗi phổ biến.</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="metrics">
+      <h2>10. Metrics đánh giá</h2>
+      <div class="grid grid2">
+        <div class="card"><h3>Product Metrics</h3><ul><li>Thời gian trung bình chấm một bài.</li><li>Tỷ lệ điểm AI được giữ nguyên.</li><li>Tỷ lệ nhận xét AI bị chỉnh sửa.</li><li>Số bài được chấm mỗi phiên.</li><li>Tỷ lệ giáo viên quay lại sử dụng.</li></ul></div>
+        <div class="card"><h3>AI Metrics</h3><ul><li>OCR Accuracy, CER, WER.</li><li>MAE giữa điểm AI và điểm giáo viên.</li><li>Rubric Alignment.</li><li>Feedback Quality Score.</li></ul></div>
+      </div>
+    </section>
+
+    <section id="risks">
+      <h2>11. Rủi ro & hướng xử lý</h2>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Rủi ro</th><th>Ảnh hưởng</th><th>Hướng xử lý</th></tr>
+          <tr><td>AI đọc sai chữ viết tay</td><td>Chấm điểm sai</td><td>Cho giáo viên xem và sửa OCR.</td></tr>
+          <tr><td>AI chấm chưa đúng rubric</td><td>Điểm thiếu chính xác</td><td>Bắt buộc giáo viên duyệt điểm cuối.</td></tr>
+          <tr><td>Ảnh bài làm mờ</td><td>Không nhận diện được</td><td>Cảnh báo và yêu cầu upload lại.</td></tr>
+          <tr><td>Nhận xét không phù hợp</td><td>Ảnh hưởng trải nghiệm học sinh</td><td>Cho giáo viên chỉnh sửa nhận xét.</td></tr>
+          <tr><td>Dữ liệu học sinh nhạy cảm</td><td>Rủi ro bảo mật</td><td>Đăng nhập, phân quyền, giới hạn truy cập.</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="success">
+      <h2>12. Success Criteria</h2>
+      <div class="card highlight">
+        <p><strong>Sản phẩm được xem là thành công ở MVP nếu:</strong></p>
+        <ul>
+          <li>Giáo viên có thể upload bài làm và rubric.</li>
+          <li>AI có thể đọc nội dung bài làm ở mức đủ để giáo viên kiểm tra.</li>
+          <li>AI có thể gợi ý điểm theo rubric.</li>
+          <li>Giáo viên có thể chỉnh sửa và xác nhận điểm cuối.</li>
+          <li>Hệ thống lưu được kết quả theo từng học sinh.</li>
+          <li>Dashboard hiển thị điểm trung bình, phổ điểm và lỗi phổ biến.</li>
+          <li>Sản phẩm có giao diện web hoàn chỉnh, có đăng nhập và có URL truy cập được.</li>
+        </ul>
+      </div>
+      <div class="footer-note">
+        <p><strong>Ghi chú MVP:</strong> Đây là bản PRD giả định ban đầu, có thể thay đổi sau khi phỏng vấn giáo viên thật. Luồng cốt lõi: upload bài làm → AI đọc bài → AI gợi ý chấm → giáo viên duyệt → lưu kết quả → xem dashboard lớp học.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

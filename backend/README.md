@@ -18,6 +18,74 @@ GEMINI_MODEL=gemini-2.5-flash
 
 ## Endpoints
 
+## Blueprint subset: submissions & grading
+
+Project này chỉ triển khai phần giống scope hiện tại:
+
+- `POST /submissions`: nộp bài bằng text đã xác nhận, chấm AI nháp theo rubric đã duyệt.
+- `GET /submissions/{id}`: xem chi tiết bài nộp, text bài làm và điểm nháp.
+- `DELETE /submissions/{id}`: thu hồi bài nộp nếu chưa được giáo viên duyệt.
+- `PUT /submissions/{id}/approve`: giáo viên duyệt hoặc sửa điểm cuối.
+
+Chưa triển khai các phần ngoài scope hiện tại:
+
+- Presigned URL upload ảnh.
+- OCR ảnh.
+- JWT thật.
+- Database thật.
+- Background task thật.
+
+Ví dụ `POST /submissions`:
+
+```json
+{
+  "assignment_id": "demo-assignment-1",
+  "assignment_question": "Cảm nhận của em về nhân vật Lão Hạc trong truyện ngắn Lão Hạc của Nam Cao.",
+  "confirmed_text": "Lão Hạc là một người nông dân nghèo nhưng có phẩm chất tốt đẹp...",
+  "student_name": "Nguyễn Văn A",
+  "approved_rubric": [
+    {
+      "criterion": "Hiểu nội dung tác phẩm",
+      "description": "Nêu đúng nhân vật, hoàn cảnh và phẩm chất của Lão Hạc.",
+      "max_score": 4
+    },
+    {
+      "criterion": "Phân tích và cảm nhận",
+      "description": "Có nhận xét, phân tích về tình yêu thương con, lòng tự trọng và bi kịch của nhân vật.",
+      "max_score": 3
+    },
+    {
+      "criterion": "Dẫn chứng và lập luận",
+      "description": "Dẫn chứng phù hợp, lập luận rõ ràng.",
+      "max_score": 2
+    },
+    {
+      "criterion": "Diễn đạt",
+      "description": "Diễn đạt mạch lạc, ít lỗi chính tả và ngữ pháp.",
+      "max_score": 1
+    }
+  ],
+  "max_score": 10,
+  "grade_level": "Lớp 8"
+}
+```
+
+Ví dụ `PUT /submissions/{id}/approve`:
+
+```json
+{
+  "final_score": 8,
+  "final_feedback": "Bài viết có cảm xúc, cần bổ sung thêm dẫn chứng trực tiếp.",
+  "grading_details": {
+    "c1": {
+      "score": 3.5,
+      "max_points": 4,
+      "reason": "Nắm được nội dung chính."
+    }
+  }
+}
+```
+
 ### `GET /`
 
 ```json
